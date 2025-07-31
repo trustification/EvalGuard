@@ -1,8 +1,0 @@
-id: accuracy
-name: Accuracy
-description: Percentage of correct predictions
-type: percentage
-direction: higher_is_better
-tags:
-  - accuracy
-  - classification 

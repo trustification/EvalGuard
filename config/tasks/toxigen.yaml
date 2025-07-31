@@ -1,0 +1,5 @@
+id: toxigen
+name: toxigen
+metrics:
+  - acc
+  - acc_norm

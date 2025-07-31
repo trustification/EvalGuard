@@ -10,6 +10,7 @@ help:
 	@echo "  make dev        - Run in development mode"
 	@echo "  make test       - Run tests"
 	@echo "  make model      - Generate TypeScript models from schemas"
+	@echo "  make generate file=<path> - Generate tasks and metrics from lm-eval report"
 	@echo "  make validate   - Validate all config files"
 	@echo "  make validate tasks    - Validate task files"
 	@echo "  make validate metrics  - Validate metric files"
@@ -48,6 +49,17 @@ test: build
 model: build
 	@echo "📝 Generating TypeScript models..."
 	node dist/index.js model
+
+# Generate tasks and metrics from report
+generate: build
+	@echo "🔧 Generating tasks and metrics from report..."
+	@if [ -z "$(file)" ]; then \
+		echo "❌ Error: file parameter is required"; \
+		echo "Usage: make generate file=../reports/lm-eval/phi-2.json"; \
+		echo "Example: make generate file=../reports/lm-eval/Llama-3.1-8B-Instruct.json"; \
+		exit 1; \
+	fi
+	node dist/index.js generate -f $(file)
 
 # Validate all config files
 validate: build

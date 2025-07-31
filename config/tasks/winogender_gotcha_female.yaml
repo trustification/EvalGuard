@@ -1,0 +1,7 @@
+id: winogender_gotcha_female
+name: winogender_gotcha_female
+tags:
+  - social_bias
+  - winogender
+metrics:
+  - acc

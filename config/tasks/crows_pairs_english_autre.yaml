@@ -1,0 +1,7 @@
+id: crows_pairs_english_autre
+name: crows_pairs_english_autre
+tags:
+  - crows_pairs
+metrics:
+  - likelihood_diff
+  - pct_stereotype

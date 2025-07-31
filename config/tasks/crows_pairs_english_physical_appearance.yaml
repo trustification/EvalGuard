@@ -1,0 +1,7 @@
+id: crows_pairs_english_physical_appearance
+name: crows_pairs_english_physical_appearance
+tags:
+  - crows_pairs
+metrics:
+  - likelihood_diff
+  - pct_stereotype

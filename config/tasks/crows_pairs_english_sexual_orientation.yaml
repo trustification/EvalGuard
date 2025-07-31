@@ -1,0 +1,7 @@
+id: crows_pairs_english_sexual_orientation
+name: crows_pairs_english_sexual_orientation
+tags:
+  - crows_pairs
+metrics:
+  - likelihood_diff
+  - pct_stereotype

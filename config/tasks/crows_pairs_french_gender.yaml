@@ -1,0 +1,7 @@
+id: crows_pairs_french_gender
+name: crows_pairs_french_gender
+tags:
+  - crows_pairs
+metrics:
+  - likelihood_diff
+  - pct_stereotype

@@ -1,0 +1,7 @@
+id: winogender_all
+name: winogender_all
+tags:
+  - social_bias
+  - winogender
+metrics:
+  - acc

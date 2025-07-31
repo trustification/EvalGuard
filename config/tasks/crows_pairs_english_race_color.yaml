@@ -1,0 +1,7 @@
+id: crows_pairs_english_race_color
+name: crows_pairs_english_race_color
+tags:
+  - crows_pairs
+metrics:
+  - likelihood_diff
+  - pct_stereotype

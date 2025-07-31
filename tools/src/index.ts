@@ -3,6 +3,7 @@
 import { Command } from 'commander';
 import { modelCommand } from './commands/model';
 import { validateCommand } from './commands/validate';
+import { generateCommand } from './commands/generate';
 
 const program = new Command();
 
@@ -24,5 +25,12 @@ program
   .option('-t, --type <type>', 'Validate specific type: metrics, tasks, or thresholds')
   .option('-f, --file <path>', 'Validate specific file path')
   .action(validateCommand);
+
+// Add generate command
+program
+  .command('generate')
+  .description('Generate tasks and metrics from lm-eval report')
+  .requiredOption('-f, --file <path>', 'Path to lm-eval report JSON file')
+  .action(generateCommand);
 
 program.parse(); 

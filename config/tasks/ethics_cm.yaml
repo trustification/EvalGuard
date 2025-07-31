@@ -1,0 +1,6 @@
+id: ethics_cm
+name: ethics_cm
+tags:
+  - hendrycks_ethics
+metrics:
+  - acc
