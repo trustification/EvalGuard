@@ -1,0 +1,51 @@
+{
+  "$schema": "http://json-schema.org/draft/2020-12/schema",
+  "title": "Task",
+  "description": "Schema for a model evaluation task, based on lm-eval report data plus user-added metadata.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique task identifier."
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable name of the task."
+    },
+    "description": {
+      "type": "string",
+      "description": "Optional detailed description of the task."
+    },
+    "category": {
+      "type": "string",
+      "description": "Optional category of the task, e.g. 'question_answering', 'language_modeling'."
+    },
+    "metrics": {
+      "type": "array",
+      "description": "List of metric IDs applicable to this task.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "tags": {
+      "type": "array",
+      "description": "Optional tags for the task, e.g. domain, language, difficulty.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "languages": {
+      "type": "array",
+      "description": "Optional list of languages relevant to the task.",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "metrics"
+  ],
+  "additionalProperties": false
+}
