@@ -1,0 +1,15 @@
+task: sample_task
+thresholds:
+  accuracy:
+    - label: Poor
+      min: 0
+      max: 0.6
+      interpretation: Performance below acceptable threshold
+    - label: Good
+      min: 0.6
+      max: 0.8
+      interpretation: Acceptable performance
+    - label: Excellent
+      min: 0.8
+      max: 1.0
+      interpretation: Outstanding performance 

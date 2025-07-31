@@ -1,0 +1,12 @@
+id: sample_task
+name: Sample Task
+description: A sample task for testing validation
+category: question_answering
+metrics:
+  - accuracy
+  - f1_score
+tags:
+  - test
+  - sample
+languages:
+  - en 
