@@ -6,4 +6,4 @@ export interface CommandOptions {
 
 // Export all types
 export * from './validation';
-// export * from './schemas'; // Will be available after running 'make model' 
+export * from './schemas'; 

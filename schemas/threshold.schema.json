@@ -14,42 +14,9 @@
       "patternProperties": {
         "^.+$": {
           "type": "array",
+          "description": "Array of threshold ranges for a metric",
           "items": {
-            "type": "object",
-            "properties": {
-              "label": {
-                "type": "string",
-                "description": "Human-readable interpretation label for this threshold range."
-              },
-              "min": {
-                "type": "number",
-                "description": "Inclusive minimum value for this range. Optional if only max is set."
-              },
-              "max": {
-                "type": "number",
-                "description": "Exclusive maximum value for this range. Optional if only min is set."
-              },
-              "interpretation": {
-                "type": "string",
-                "description": "Optional detailed explanation of what this threshold range means."
-              }
-            },
-            "required": [
-              "label"
-            ],
-            "additionalProperties": false,
-            "anyOf": [
-              {
-                "required": [
-                  "min"
-                ]
-              },
-              {
-                "required": [
-                  "max"
-                ]
-              }
-            ]
+            "$ref": "#/definitions/ThresholdRangeItem"
           }
         }
       }
@@ -59,5 +26,45 @@
     "task",
     "thresholds"
   ],
-  "additionalProperties": false
+  "additionalProperties": false,
+  "definitions": {
+    "ThresholdRangeItem": {
+      "type": "object",
+      "description": "A threshold range with label and optional min/max values",
+      "properties": {
+        "label": {
+          "type": "string",
+          "description": "Human-readable interpretation label for this threshold range."
+        },
+        "min": {
+          "type": "number",
+          "description": "Inclusive minimum value for this range. Optional if only max is set."
+        },
+        "max": {
+          "type": "number",
+          "description": "Exclusive maximum value for this range. Optional if only min is set."
+        },
+        "interpretation": {
+          "type": "string",
+          "description": "Optional detailed explanation of what this threshold range means."
+        }
+      },
+      "required": [
+        "label"
+      ],
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "min"
+          ]
+        },
+        {
+          "required": [
+            "max"
+          ]
+        }
+      ]
+    }
+  }
 }
