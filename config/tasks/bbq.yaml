@@ -1,7 +1,9 @@
 id: bbq
-name: bbq
+name: Bias Benchmark for QA
+description: Bias Benchmark for QA - tests for social bias in question answering
 tags:
   - social_bias
+category: question_answering
 metrics:
   - acc
   - accuracy_amb

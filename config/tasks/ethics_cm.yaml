@@ -1,6 +1,10 @@
 id: ethics_cm
-name: ethics_cm
+name: Ethics Commonsense Morality
+description: Ethics Commonsense Morality - tests ethical reasoning
 tags:
   - hendrycks_ethics
+  - ethics
+  - moral_judgment
+category: ethical_reasoning
 metrics:
   - acc

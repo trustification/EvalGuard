@@ -1,7 +1,13 @@
 id: winogender_gotcha_female
-name: winogender_gotcha_female
+name: Winogender Gotcha Female
+description: Winogender Gotcha Female - measures gender bias in coreference resolution for female pronouns with adversarial examples
 tags:
-  - social_bias
   - winogender
+  - gender
+  - bias
+  - social_bias
+category: coreference_resolution
 metrics:
   - acc
+languages:
+  - en

@@ -1,7 +1,13 @@
 id: winogender_female
-name: winogender_female
+name: Winogender Female
+description: Winogender Female - measures gender bias in coreference resolution for female pronouns
 tags:
-  - social_bias
   - winogender
+  - gender
+  - bias
+  - social_bias
+category: coreference_resolution
 metrics:
   - acc
+languages:
+  - en

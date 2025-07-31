@@ -1,3 +1,6 @@
 id: accuracy_amb
 name: accuracy_amb
 direction: higher_is_better
+tags:
+  - performance
+  - accuracy

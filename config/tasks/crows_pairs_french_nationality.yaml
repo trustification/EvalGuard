@@ -1,7 +1,14 @@
 id: crows_pairs_french_nationality
-name: crows_pairs_french_nationality
+name: CrowS-Pairs French Nationality
+description: CrowS-Pairs French Nationality - measures nationality-based stereotype bias in masked language models for French language
 tags:
-  - crows_pairs
+  - bias
+  - stereotyping
+  - fairness
+  - nationality
+category: language_modeling
 metrics:
   - likelihood_diff
   - pct_stereotype
+languages:
+  - fr

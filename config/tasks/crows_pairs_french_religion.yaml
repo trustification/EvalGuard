@@ -1,7 +1,14 @@
 id: crows_pairs_french_religion
-name: crows_pairs_french_religion
+name: CrowS-Pairs French Religion
+description: CrowS-Pairs French Religion - measures religion-based stereotype bias in masked language models for French language
 tags:
-  - crows_pairs
+  - bias
+  - stereotyping
+  - fairness
+  - religion
+category: language_modeling
 metrics:
   - likelihood_diff
   - pct_stereotype
+languages:
+  - fr

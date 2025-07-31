@@ -1,7 +1,15 @@
 id: crows_pairs_french_race_color
-name: crows_pairs_french_race_color
+name: CrowS-Pairs French Race/Color
+description: CrowS-Pairs French Race/Color - measures race/color-based stereotype bias in masked language models for French language
 tags:
-  - crows_pairs
+  - bias
+  - stereotyping
+  - fairness
+  - race
+  - color
+category: language_modeling
 metrics:
   - likelihood_diff
   - pct_stereotype
+languages:
+  - fr

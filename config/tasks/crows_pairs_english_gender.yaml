@@ -1,7 +1,14 @@
 id: crows_pairs_english_gender
-name: crows_pairs_english_gender
+name: CrowS-Pairs English Gender
+description: CrowS-Pairs English Gender - measures gender-based stereotype bias in masked language models for English language
 tags:
-  - crows_pairs
+  - bias
+  - stereotyping
+  - fairness
+  - gender
+category: language_modeling
 metrics:
   - likelihood_diff
   - pct_stereotype
+languages:
+  - en

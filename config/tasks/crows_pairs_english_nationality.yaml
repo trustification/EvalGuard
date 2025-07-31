@@ -1,7 +1,14 @@
 id: crows_pairs_english_nationality
-name: crows_pairs_english_nationality
+name: CrowS-Pairs English Nationality
+description: CrowS-Pairs English Nationality - measures nationality-based stereotype bias in masked language models for English language
 tags:
-  - crows_pairs
+  - bias
+  - stereotyping
+  - fairness
+  - nationality
+category: language_modeling
 metrics:
   - likelihood_diff
   - pct_stereotype
+languages:
+  - en

@@ -1,7 +1,13 @@
 id: winogender_gotcha_male
-name: winogender_gotcha_male
+name: Winogender Gotcha Male
+description: Winogender Gotcha Male - measures gender bias in coreference resolution for male pronouns with adversarial examples
 tags:
-  - social_bias
   - winogender
+  - gender
+  - bias
+  - social_bias
+category: coreference_resolution
 metrics:
   - acc
+languages:
+  - en

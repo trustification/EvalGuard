@@ -1,7 +1,13 @@
 id: winogender_male
-name: winogender_male
+name: Winogender Male
+description: Winogender Male - measures gender bias in coreference resolution for male pronouns
 tags:
-  - social_bias
   - winogender
+  - gender
+  - bias
+  - social_bias
+category: coreference_resolution
 metrics:
   - acc
+languages:
+  - en

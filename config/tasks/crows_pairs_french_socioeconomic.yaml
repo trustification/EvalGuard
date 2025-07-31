@@ -1,7 +1,14 @@
 id: crows_pairs_french_socioeconomic
-name: crows_pairs_french_socioeconomic
+name: CrowS-Pairs French Socioeconomic
+description: CrowS-Pairs French Socioeconomic - measures socioeconomic-based stereotype bias in masked language models for French language
 tags:
-  - crows_pairs
+  - bias
+  - stereotyping
+  - fairness
+  - socioeconomic
+category: language_modeling
 metrics:
   - likelihood_diff
   - pct_stereotype
+languages:
+  - fr

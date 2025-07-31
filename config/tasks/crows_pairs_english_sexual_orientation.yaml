@@ -1,7 +1,14 @@
 id: crows_pairs_english_sexual_orientation
-name: crows_pairs_english_sexual_orientation
+name: CrowS-Pairs English Sexual Orientation
+description: CrowS-Pairs English Sexual Orientation - measures sexual orientation-based stereotype bias in masked language models for English language
 tags:
-  - crows_pairs
+  - bias
+  - stereotyping
+  - fairness
+  - sexual_orientation
+category: language_modeling
 metrics:
   - likelihood_diff
   - pct_stereotype
+languages:
+  - en

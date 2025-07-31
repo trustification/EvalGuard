@@ -1,7 +1,14 @@
 id: crows_pairs_french_sexual_orientation
-name: crows_pairs_french_sexual_orientation
+name: CrowS-Pairs French Sexual Orientation
+description: CrowS-Pairs French Sexual Orientation - measures sexual orientation-based stereotype bias in masked language models for French language
 tags:
-  - crows_pairs
+  - bias
+  - stereotyping
+  - fairness
+  - sexual_orientation
+category: language_modeling
 metrics:
   - likelihood_diff
   - pct_stereotype
+languages:
+  - fr

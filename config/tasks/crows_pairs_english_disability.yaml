@@ -1,7 +1,14 @@
 id: crows_pairs_english_disability
-name: crows_pairs_english_disability
+name: CrowS-Pairs English Disability
+description: CrowS-Pairs English Disability - measures disability-based stereotype bias in masked language models for English language
 tags:
-  - crows_pairs
+  - bias
+  - stereotyping
+  - fairness
+  - disability
+category: language_modeling
 metrics:
   - likelihood_diff
   - pct_stereotype
+languages:
+  - en

@@ -1,7 +1,14 @@
 id: crows_pairs_english_socioeconomic
-name: crows_pairs_english_socioeconomic
+name: CrowS-Pairs English Socioeconomic
+description: CrowS-Pairs English Socioeconomic - measures socioeconomic-based stereotype bias in masked language models for English language
 tags:
-  - crows_pairs
+  - bias
+  - stereotyping
+  - fairness
+  - socioeconomic
+category: language_modeling
 metrics:
   - likelihood_diff
   - pct_stereotype
+languages:
+  - en

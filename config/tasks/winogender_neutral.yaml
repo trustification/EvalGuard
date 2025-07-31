@@ -1,7 +1,13 @@
 id: winogender_neutral
-name: winogender_neutral
+name: Winogender Neutral
+description: Winogender Neutral - measures gender bias in coreference resolution for neutral pronouns
 tags:
-  - social_bias
   - winogender
+  - gender
+  - bias
+  - social_bias
+category: coreference_resolution
 metrics:
   - acc
+languages:
+  - en

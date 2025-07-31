@@ -1,7 +1,14 @@
 id: crows_pairs_french_disability
-name: crows_pairs_french_disability
+name: CrowS-Pairs French Disability
+description: CrowS-Pairs French Disability - measures disability-based stereotype bias in masked language models for French language
 tags:
-  - crows_pairs
+  - bias
+  - stereotyping
+  - fairness
+  - disability
+category: language_modeling
 metrics:
   - likelihood_diff
   - pct_stereotype
+languages:
+  - fr

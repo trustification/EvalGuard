@@ -1,7 +1,14 @@
 id: crows_pairs_english_age
-name: crows_pairs_english_age
+name: CrowS-Pairs English Age
+description: CrowS-Pairs English Age - measures age-based stereotype bias in masked language models for English language
 tags:
-  - crows_pairs
+  - bias
+  - stereotyping
+  - fairness
+  - age
+category: language_modeling
 metrics:
   - likelihood_diff
   - pct_stereotype
+languages:
+  - en

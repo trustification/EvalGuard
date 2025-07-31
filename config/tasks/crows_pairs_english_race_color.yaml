@@ -1,7 +1,15 @@
 id: crows_pairs_english_race_color
-name: crows_pairs_english_race_color
+name: CrowS-Pairs English Race/Color
+description: CrowS-Pairs English Race/Color - measures race/color-based stereotype bias in masked language models for English language
 tags:
-  - crows_pairs
+  - bias
+  - stereotyping
+  - fairness
+  - race
+  - color
+category: language_modeling
 metrics:
   - likelihood_diff
   - pct_stereotype
+languages:
+  - en

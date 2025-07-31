@@ -1,7 +1,14 @@
 id: crows_pairs_english_religion
-name: crows_pairs_english_religion
+name: CrowS-Pairs English Religion
+description: CrowS-Pairs English Religion - measures religion-based stereotype bias in masked language models for English language
 tags:
-  - crows_pairs
+  - bias
+  - stereotyping
+  - fairness
+  - religion
+category: language_modeling
 metrics:
   - likelihood_diff
   - pct_stereotype
+languages:
+  - en

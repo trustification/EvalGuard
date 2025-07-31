@@ -1,5 +1,11 @@
 id: toxigen
-name: toxigen
+name: ToxiGen
+description: ToxiGen - tests for toxic content generation
+tags:
+  - toxicity
+  - hate-speech
+  - safety
+category: toxicity_detection
 metrics:
   - acc
   - acc_norm

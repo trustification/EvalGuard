@@ -1,6 +1,8 @@
 id: truthfulqa_mc1
 name: truthfulqa_mc1
+description: TruthfulQA Multiple Choice - tests truthfulness in question answering
 tags:
   - truthfulqa
+category: question_answering
 metrics:
   - acc

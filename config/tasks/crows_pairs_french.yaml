@@ -1,7 +1,13 @@
 id: crows_pairs_french
-name: crows_pairs_french
+name: CrowS-Pairs French
+description: CrowS-Pairs French - measures stereotype bias in masked language models for French language
 tags:
-  - crows_pairs
+  - bias
+  - stereotyping
+  - fairness
+category: language_modeling
 metrics:
   - likelihood_diff
   - pct_stereotype
+languages:
+  - fr

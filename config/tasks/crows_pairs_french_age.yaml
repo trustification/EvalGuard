@@ -1,7 +1,14 @@
 id: crows_pairs_french_age
-name: crows_pairs_french_age
+name: CrowS-Pairs French Age
+description: CrowS-Pairs French Age - measures age-based stereotype bias in masked language models for French language
 tags:
-  - crows_pairs
+  - bias
+  - stereotyping
+  - fairness
+  - age
+category: language_modeling
 metrics:
   - likelihood_diff
   - pct_stereotype
+languages:
+  - fr

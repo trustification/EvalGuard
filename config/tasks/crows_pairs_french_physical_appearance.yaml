@@ -1,7 +1,14 @@
 id: crows_pairs_french_physical_appearance
-name: crows_pairs_french_physical_appearance
+name: CrowS-Pairs French Physical Appearance
+description: CrowS-Pairs French Physical Appearance - measures physical appearance-based stereotype bias in masked language models for French language
 tags:
-  - crows_pairs
+  - bias
+  - stereotyping
+  - fairness
+  - physical_appearance
+category: language_modeling
 metrics:
   - likelihood_diff
   - pct_stereotype
+languages:
+  - fr

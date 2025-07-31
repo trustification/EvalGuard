@@ -1,7 +1,13 @@
 id: crows_pairs_english
 name: crows_pairs_english
+description: CrowS-Pairs - measures stereotype bias in masked language models
 tags:
-  - crows_pairs
+  - bias
+  - stereotyping
+  - fairness
+category: language_modeling
 metrics:
   - likelihood_diff
   - pct_stereotype
+languages:
+  - en
