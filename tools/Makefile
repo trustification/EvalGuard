@@ -11,6 +11,7 @@ help:
 	@echo "  make test       - Run tests"
 	@echo "  make model      - Generate TypeScript models from schemas"
 	@echo "  make generate file=<path> - Generate tasks and metrics from lm-eval report"
+	@echo "  make generate folder=<path> - Generate tasks and metrics from all JSON files in folder"
 	@echo "  make validate   - Validate all config files"
 	@echo "  make validate tasks    - Validate task files"
 	@echo "  make validate metrics  - Validate metric files"
@@ -61,13 +62,19 @@ model: build
 # Generate tasks and metrics from report
 generate: build
 	@echo "🔧 Generating tasks and metrics from report..."
-	@if [ -z "$(file)" ]; then \
-		echo "❌ Error: file parameter is required"; \
+	@if [ -z "$(file)" ] && [ -z "$(folder)" ]; then \
+		echo "❌ Error: Either file or folder parameter is required"; \
 		echo "Usage: make generate file=../reports/lm-eval/phi-2.json"; \
+		echo "Usage: make generate folder=../reports/lm-eval/"; \
 		echo "Example: make generate file=../reports/lm-eval/Llama-3.1-8B-Instruct.json"; \
+		echo "Example: make generate folder=../reports/lm-eval/"; \
 		exit 1; \
 	fi
-	node dist/index.js generate -f $(file)
+	@if [ -n "$(file)" ]; then \
+		node dist/index.js generate -f $(file); \
+	elif [ -n "$(folder)" ]; then \
+		node dist/index.js generate -d $(folder); \
+	fi
 
 # Validate all config files
 validate: build

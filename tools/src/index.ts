@@ -29,8 +29,9 @@ program
 // Add generate command
 program
   .command('generate')
-  .description('Generate tasks and metrics from lm-eval report')
-  .requiredOption('-f, --file <path>', 'Path to lm-eval report JSON file')
+  .description('Generate tasks and metrics from lm-eval report(s)')
+  .option('-f, --file <path>', 'Path to lm-eval report JSON file')
+  .option('-d, --folder <path>', 'Path to folder containing lm-eval report JSON files')
   .action(generateCommand);
 
 program.parse(); 
