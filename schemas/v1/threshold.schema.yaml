@@ -1,0 +1,46 @@
+$schema: http://json-schema.org/draft/2020-12/schema
+title: Threshold
+description: Schema to define interpretation thresholds for metric scores within a task context.
+type: object
+properties:
+  task:
+    type: string
+    description: Task ID to which these thresholds apply.
+  thresholds:
+    type: object
+    description: Mapping from metric IDs to arrays of threshold ranges and labels.
+    patternProperties:
+      "^.+$":
+        type: array
+        description: Array of threshold ranges for a metric
+        items:
+          $ref: "#/definitions/ThresholdRangeItem"
+required:
+  - task
+  - thresholds
+additionalProperties: false
+definitions:
+  ThresholdRangeItem:
+    type: object
+    description: A threshold range with label and optional min/max values
+    properties:
+      label:
+        type: string
+        description: Human-readable interpretation label for this threshold range.
+      min:
+        type: number
+        description: Inclusive minimum value for this range. Optional if only max is set.
+      max:
+        type: number
+        description: Exclusive maximum value for this range. Optional if only min is set.
+      interpretation:
+        type: string
+        description: Optional detailed explanation of what this threshold range means.
+    required:
+      - label
+    additionalProperties: false
+    anyOf:
+      - required:
+          - min
+      - required:
+          - max 

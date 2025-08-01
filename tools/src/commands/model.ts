@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import * as yaml from 'js-yaml';
 import { compile, Options } from 'json-schema-to-typescript';
 
 export async function modelCommand(): Promise<void> {
@@ -8,17 +9,21 @@ export async function modelCommand(): Promise<void> {
     
     const schemasDir = path.resolve(__dirname, '../../../schemas');
     const outputDir = path.resolve(__dirname, '../types');
+    const versionedOutputDir = path.resolve(__dirname, '../types/v1');
     
-    // Ensure output directory exists
+    // Ensure output directories exist
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
     }
+    if (!fs.existsSync(versionedOutputDir)) {
+      fs.mkdirSync(versionedOutputDir, { recursive: true });
+    }
     
-    // Read schema files
+    // Read schema files (prefer versioned, fallback to legacy)
     const schemaFiles = [
-      { name: 'Task', file: 'task.schema.json' },
-      { name: 'Metric', file: 'metric.schema.json' },
-      { name: 'Threshold', file: 'threshold.schema.json' }
+      { name: 'Task', schemaName: 'task' },
+      { name: 'Metric', schemaName: 'metric' },
+      { name: 'Threshold', schemaName: 'threshold' }
     ];
     
     let generatedContent = `// Auto-generated TypeScript interfaces from EvalGuard schemas
@@ -44,15 +49,37 @@ export async function modelCommand(): Promise<void> {
     } as any;
 
     for (const schema of schemaFiles) {
-      const schemaPath = path.join(schemasDir, schema.file);
+      // Load versioned schemas
+      let schemaObj: any;
+      let schemaPath: string;
       
-      if (!fs.existsSync(schemaPath)) {
-        console.warn(`⚠️  Schema file not found: ${schemaPath}`);
-        continue;
+      // Load versioned schemas (v1, v2, etc.)
+      const versionedPaths = [
+        path.join(schemasDir, 'v1', `${schema.schemaName}.schema.yaml`),
+        path.join(schemasDir, 'v1', `${schema.schemaName}.schema.json`)
+      ];
+      
+      for (const schemaPath of versionedPaths) {
+        if (fs.existsSync(schemaPath)) {
+          try {
+            const content = fs.readFileSync(schemaPath, 'utf-8');
+            if (schemaPath.endsWith('.yaml')) {
+              schemaObj = yaml.load(content);
+            } else {
+              schemaObj = JSON.parse(content);
+            }
+            console.log(`📄 Using versioned schema: ${path.relative(schemasDir, schemaPath)}`);
+            break;
+          } catch (error) {
+            console.warn(`⚠️  Could not parse schema ${schemaPath}, trying next option`);
+          }
+        }
       }
       
-      const schemaContent = fs.readFileSync(schemaPath, 'utf-8');
-      const schemaObj = JSON.parse(schemaContent);
+      if (!schemaObj) {
+        console.warn(`⚠️  No valid schema file found for ${schema.name} in versioned schemas`);
+        continue;
+      }
       
       try {
         const typescriptInterface = await compile(schemaObj, schema.name, options);
@@ -76,20 +103,22 @@ export async function modelCommand(): Promise<void> {
       }
     }
     
-    // Write the generated file to both dist and src folders
-    const outputFile = path.join(outputDir, 'schemas.ts');
-    const sourceOutputFile = path.join(__dirname, '../../src/types/schemas.ts');
+    // Write the generated file to versioned locations
+    const versionedOutputFile = path.join(versionedOutputDir, 'schemas.ts');
+    const sourceVersionedOutputFile = path.join(__dirname, '../../src/types/v1/schemas.ts');
     
-    fs.writeFileSync(outputFile, generatedContent);
-    fs.writeFileSync(sourceOutputFile, generatedContent);
+    // Ensure source versioned directory exists
+    const sourceVersionedDir = path.dirname(sourceVersionedOutputFile);
+    if (!fs.existsSync(sourceVersionedDir)) {
+      fs.mkdirSync(sourceVersionedDir, { recursive: true });
+    }
+    
+    fs.writeFileSync(versionedOutputFile, generatedContent);
+    fs.writeFileSync(sourceVersionedOutputFile, generatedContent);
     
     console.log(`✅ TypeScript models generated successfully!`);
-    console.log(`📁 Dist: ${outputFile}`);
-    console.log(`📁 Source: ${sourceOutputFile}`);
-    
-    console.log(`✅ TypeScript models generated successfully!`);
-    console.log(`📁 Dist: ${outputFile}`);
-    console.log(`📁 Source: ${sourceOutputFile}`);
+    console.log(`📁 Dist (v1): ${versionedOutputFile}`);
+    console.log(`📁 Source (v1): ${sourceVersionedOutputFile}`);
     
   } catch (error) {
     console.error('❌ Error generating TypeScript models:', error);

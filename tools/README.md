@@ -20,7 +20,7 @@ npm run build
 
 ### Generate TypeScript Models
 
-Generate TypeScript interfaces from JSON schemas using the `json-schema-to-typescript` library:
+Generate TypeScript interfaces from schemas (YAML or JSON) using the `json-schema-to-typescript` library:
 
 ```bash
 make model
@@ -30,7 +30,7 @@ npm run dev model
 node dist/index.js model
 ```
 
-This will create TypeScript interfaces in `./src/types/schemas.ts` based on the schemas in `../schemas/`.
+This will create TypeScript interfaces in `./src/types/v1/schemas.ts` based on the versioned schemas in `../schemas/v1/`. The tool prefers YAML schemas but falls back to JSON if YAML is not available.
 
 ### Validate Configuration Files
 
@@ -101,6 +101,14 @@ The CLI supports validation of:
 - JSON files (`.json`)
 
 Configuration files are recommended to be in YAML format for better readability.
+
+### Schema Files
+
+The tool supports both YAML and JSON schema files:
+- **YAML schemas** (`.yaml`) - **preferred format**
+- **JSON schemas** (`.json`) - fallback format
+
+The validation system will automatically prefer YAML schemas when available, falling back to JSON schemas if needed.
 
 ## Schema Types
 

@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
 import { glob } from 'glob';
-import { Task, Metric } from '../types/schemas';
+import { Task, Metric } from '../types/v1/schemas';
 
 interface GenerateOptions {
   file?: string;

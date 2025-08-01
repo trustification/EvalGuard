@@ -6,4 +6,4 @@ export interface CommandOptions {
 
 // Export all types
 export * from './validation';
-export * from './schemas'; 
+export * from './v1/schemas'; 

@@ -30,20 +30,96 @@ This enables:
 
 ---
 
+## Specification
+
+The EvalGuard schema system is formally defined in the [**EvalGuard Schema Specification**](SPECIFICATION.md). This specification provides:
+
+- **Schema Definitions**: Formal definitions for tasks, metrics, and thresholds
+- **Validation Rules**: Comprehensive validation requirements and constraints
+- **File Organization**: Schema versioning and file structure guidelines
+- **Implementation Requirements**: Conformance requirements for implementations
+
+The specification follows industry standards and uses RFC 2119 terminology for clarity and precision.
+
+---
+
 ## Repository Structure
 
 ```text
 evalguard/
-├── schemas/           # JSON Schemas defining structure of tasks, metrics, and reports
-│   ├── task.schema.json
-│   ├── metric.schema.json
-│   └── report.schema.json
-├── configs/           # Configurable metadata for interpretation
-│   ├── tasks/
-│   ├── metrics/
-│   └── thresholds/
+├── schemas/           # Schema definitions (see SPECIFICATION.md)
+├── config/            # Configuration files for interpretation
+│   ├── tasks/         # Task definitions and metadata
+│   ├── metrics/       # Metric definitions and types
+│   └── thresholds/    # Performance thresholds
 ├── reports/           # Community-contributed model evaluation reports
-│   └── gpt-4-openreport.yaml
+│   └── lm-eval/       # lm-evaluation-harness reports
+├── tools/             # CLI tool for schema management
+│   ├── src/
+│   ├── dist/
+│   └── bin/           # Standalone binaries
+├── SPECIFICATION.md   # Formal schema specification
 ├── LICENSE
 ├── NOTICE
 └── README.md
+```
+
+## Tools and CLI
+
+EvalGuard provides a CLI tool for working with schemas and configurations. The tool implements the requirements defined in the [EvalGuard Schema Specification](SPECIFICATION.md):
+
+### Installation
+
+```bash
+# Install dependencies
+cd tools
+npm install
+
+# Build the tool
+make build
+```
+
+### Usage
+
+```bash
+# Validate all configuration files
+evalguard validate
+
+# Validate specific types
+evalguard validate -t tasks
+evalguard validate -t metrics
+evalguard validate -t thresholds
+
+# Generate TypeScript models from schemas
+evalguard model
+
+# Generate tasks/metrics from evaluation reports
+evalguard generate -f report.json
+evalguard generate -d reports/
+```
+
+### Building Standalone Binaries
+
+```bash
+# Build binaries for multiple platforms
+make binary
+
+# Available platforms: macOS, Linux, Windows
+# Output: bin/evalguard-{platform}
+```
+
+### Development
+
+```bash
+# Install dependencies
+make install
+
+# Build TypeScript
+make build
+
+# Clean build artifacts
+make clean
+
+# Run in development mode
+make dev
+```
