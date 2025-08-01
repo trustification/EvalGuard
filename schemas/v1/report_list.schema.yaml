@@ -1,0 +1,17 @@
+$schema: http://json-schema.org/draft/2020-12/schema
+$id: https://github.com/evalguard/evalguard/schemas/v1/report_list.schema.yaml
+title: ReportList
+description: Paginated list of reports
+type: object
+properties:
+  reports:
+    type: array
+    description: List of evaluation reports
+    items:
+      $ref: './report.schema.yaml'
+  pagination:
+    $ref: './pagination_info.schema.yaml'
+required:
+  - reports
+  - pagination
+additionalProperties: false

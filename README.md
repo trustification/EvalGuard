@@ -34,7 +34,7 @@ This enables:
 
 The EvalGuard schema system is formally defined in the [**EvalGuard Schema Specification**](SPECIFICATION.md). This specification provides:
 
-- **Schema Definitions**: Formal definitions for tasks, metrics, and thresholds
+- **Schema Definitions**: Formal definitions for tasks, metrics, thresholds, and reports
 - **Validation Rules**: Comprehensive validation requirements and constraints
 - **File Organization**: Schema versioning and file structure guidelines
 - **Implementation Requirements**: Conformance requirements for implementations
@@ -48,6 +48,12 @@ The specification follows industry standards and uses RFC 2119 terminology for c
 ```text
 evalguard/
 ├── schemas/           # Schema definitions (see SPECIFICATION.md)
+│   └── v1/           # Version 1 schemas
+│       ├── task.schema.yaml
+│       ├── metric.schema.yaml
+│       ├── threshold.schema.yaml
+│       ├── report.schema.yaml
+│       └── api.schema.yaml
 ├── config/            # Configuration files for interpretation
 │   ├── tasks/         # Task definitions and metadata
 │   ├── metrics/       # Metric definitions and types
@@ -67,6 +73,35 @@ evalguard/
 ## Tools and CLI
 
 EvalGuard provides a CLI tool for working with schemas and configurations. The tool implements the requirements defined in the [EvalGuard Schema Specification](SPECIFICATION.md):
+
+## API
+
+EvalGuard provides a REST API for accessing evaluation reports. The API is defined in the [OpenAPI Specification](schemas/v1/api.schema.yaml) and supports:
+
+- **Report Retrieval**: Get specific reports by ID or query by model name, source, task, or metric
+- **Model Discovery**: List available models and their evaluation history
+- **Task Information**: Access task definitions and metadata
+- **Metrics Access**: Retrieve performance metrics for specific reports
+- **Threshold Access**: Get performance thresholds for interpreting metric results
+
+### Example API Usage
+
+```bash
+# Get all reports for a specific model
+curl "https://api.evalguard.org/v1/reports?model_name=meta-llama/Llama-3.1-8B-Instruct"
+
+# Get a specific report
+curl "https://api.evalguard.org/v1/reports/llama-3.1-8b-instruct-eval-2025-01-15"
+
+# Get only metrics for a report
+curl "https://api.evalguard.org/v1/reports/llama-3.1-8b-instruct-eval-2025-01-15/metrics"
+
+# Get thresholds for multiple tasks and metrics
+curl "https://api.evalguard.org/v1/thresholds?tasks=truthfulqa_mc1,winogender_schemas&metrics=acc,acc_norm,pct_stereotype"
+
+# List available models
+curl "https://api.evalguard.org/v1/models"
+```
 
 ### Installation
 

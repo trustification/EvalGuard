@@ -9,7 +9,8 @@ help:
 	@echo "  make clean      - Clean build artifacts"
 	@echo "  make dev        - Run in development mode"
 	@echo "  make test       - Run tests"
-	@echo "  make model      - Generate TypeScript models from schemas"
+	@echo "  make model      - Generate TypeScript models from schemas (default: v1)"
+	@echo "  make model version=<v> - Generate TypeScript models for specific version"
 	@echo "  make generate file=<path> - Generate tasks and metrics from lm-eval report"
 	@echo "  make generate folder=<path> - Generate tasks and metrics from all JSON files in folder"
 	@echo "  make validate   - Validate all config files"
@@ -57,7 +58,11 @@ test: build
 # Generate TypeScript models
 model: build
 	@echo "📝 Generating TypeScript models..."
-	node dist/index.js model
+	@if [ -n "$(version)" ]; then \
+		node dist/index.js model -t $(version); \
+	else \
+		node dist/index.js model; \
+	fi
 
 # Generate tasks and metrics from report
 generate: build
@@ -91,7 +96,8 @@ setup: install build
 	@echo "✅ EvalGuard CLI setup complete!"
 	@echo ""
 	@echo "Usage examples:"
-	@echo "  make model              # Generate TypeScript models"
+	@echo "  make model              # Generate TypeScript models (v1)"
+	@echo "  make model version=v1   # Generate TypeScript models for v1"
 	@echo "  make validate           # Validate all config files"
 	@echo "  make validate tasks     # Validate task files"
 	@echo "  make validate metrics   # Validate metric files"

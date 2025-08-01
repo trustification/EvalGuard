@@ -1,4 +1,5 @@
 $schema: http://json-schema.org/draft/2020-12/schema
+$id: https://github.com/evalguard/evalguard/schemas/v1/task.schema.yaml
 title: Task
 description: Schema for a model evaluation task, based on lm-eval report data plus user-added metadata.
 type: object

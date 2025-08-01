@@ -16,7 +16,8 @@ program
 program
   .command('model')
   .description('Generate/update TypeScript data model in ./tools/schema-model')
-  .action(modelCommand);
+  .option('-t, --target-version <version>', 'Target schema version (default: v1)', 'v1')
+  .action((options) => modelCommand(options.targetVersion));
 
 // Add validate command
 program

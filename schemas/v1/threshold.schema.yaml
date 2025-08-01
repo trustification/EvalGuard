@@ -1,4 +1,5 @@
 $schema: http://json-schema.org/draft/2020-12/schema
+$id: https://github.com/evalguard/evalguard/schemas/v1/threshold.schema.yaml
 title: Threshold
 description: Schema to define interpretation thresholds for metric scores within a task context.
 type: object

@@ -1,0 +1,122 @@
+$schema: http://json-schema.org/draft/2020-12/schema
+$id: https://github.com/evalguard/evalguard/schemas/v1/report.schema.yaml
+title: Report
+description: Schema for a report of model evaluation results.
+type: object
+properties:
+  id:
+    type: string
+    description: Unique report identifier.
+  metadata:
+    type: object
+    description: Flexible key-value metadata about the report generation.
+    additionalProperties:
+      type: string
+  context:
+    type: object
+    description: Contextual information about the report generation.
+    properties:
+      model_name:
+        type: string
+        description: Name of the model being evaluated.
+      model_source:
+        type: string
+        description: Version of the model being evaluated.
+      git_hash:
+        type: string
+        description: Git hash of the model being evaluated.
+      date:
+        type: number
+        description: Timestamp of the report generation.
+      execution:
+        type: object
+        description: Execution information about the report generation.
+        properties:
+          model_args_plain:
+            type: string
+            description: Arguments used to instantiate the model.
+          model_args_dict:
+            type: object
+            description: Arguments used to instantiate the model.
+            additionalProperties:
+              type: string
+      tools:
+        type: object
+        description: Tools used to generate the report.
+        properties:
+          lm_eval:
+            type: object
+            description: lm-eval library used to generate the report.
+            properties:
+              version:
+                type: string
+          transformers:
+            type: object
+            description: Transformers library used to generate the report.
+            properties:
+              version:
+                type: string
+  tasks:
+    type: array
+    description: List of tasks in the report.
+    items:
+      type: object
+      properties:
+        task_ref:
+          type: string
+          description: Reference to the task.
+        dataset_path:
+          type: string
+          description: Path to the dataset.
+        dataset_name:
+          type: string
+          description: Name of the dataset.
+        output_type:
+          type: string
+          description: Type of the output.
+        repeats:
+          type: number
+          description: Number of times the task was repeated.
+        should_decontaminate:
+          type: boolean
+          description: Whether to decontaminate the task.
+        unsafe_code:
+          type: boolean
+          description: Whether the task contains unsafe code.
+        n_shot:
+          type: number
+          description: Number of shots in the task.
+        n_samples:
+          type: object
+          description: Number of samples in the task.
+          properties:
+            original:
+              type: number
+              description: Number of original samples.
+            effective:
+              type: number
+              description: Number of effective samples.
+        version:
+          type: number
+          description: Version of the task result.
+        metadata:
+          type: object
+          description: Metadata about the task result.
+          additionalProperties:
+            type: string
+  results:
+    type: array
+    description: List of results in the report.
+    items:
+      type: object
+      patternProperties:
+        "^[a-zA-Z0-9_-]+$":
+          type: object
+          properties:
+            value:
+              type: number
+            stderr:
+              type: number
+          required:
+            - value
+          additionalProperties: false

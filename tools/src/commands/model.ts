@@ -3,13 +3,13 @@ import * as path from 'path';
 import * as yaml from 'js-yaml';
 import { compile, Options } from 'json-schema-to-typescript';
 
-export async function modelCommand(): Promise<void> {
+export async function modelCommand(targetVersion: string = 'v1'): Promise<void> {
   try {
     console.log('🔧 Generating TypeScript data models from schemas...');
     
     const schemasDir = path.resolve(__dirname, '../../../schemas');
     const outputDir = path.resolve(__dirname, '../types');
-    const versionedOutputDir = path.resolve(__dirname, '../types/v1');
+    const versionedOutputDir = path.resolve(__dirname, `../types/${targetVersion}`);
     
     // Ensure output directories exist
     if (!fs.existsSync(outputDir)) {
@@ -23,7 +23,13 @@ export async function modelCommand(): Promise<void> {
     const schemaFiles = [
       { name: 'Task', schemaName: 'task' },
       { name: 'Metric', schemaName: 'metric' },
-      { name: 'Threshold', schemaName: 'threshold' }
+      { name: 'Threshold', schemaName: 'threshold' },
+      { name: 'Report', schemaName: 'report' },
+      { name: 'ReportList', schemaName: 'report_list' },
+      { name: 'PaginationInfo', schemaName: 'pagination_info' },
+      { name: 'ModelInfo', schemaName: 'model_info' },
+      { name: 'Error', schemaName: 'error' },
+      { name: 'ThresholdsResponse', schemaName: 'thresholds_response' }
     ];
     
     let generatedContent = `// Auto-generated TypeScript interfaces from EvalGuard schemas
@@ -45,7 +51,8 @@ export async function modelCommand(): Promise<void> {
       strictIndexSignatures: false,
       unknownAny: false,
       additionalProperties: false,
-      patternProperties: true
+      patternProperties: true,
+      cwd: path.join(schemasDir, targetVersion) // Set working directory for relative path resolution
     } as any;
 
     for (const schema of schemaFiles) {
@@ -55,8 +62,8 @@ export async function modelCommand(): Promise<void> {
       
       // Load versioned schemas (v1, v2, etc.)
       const versionedPaths = [
-        path.join(schemasDir, 'v1', `${schema.schemaName}.schema.yaml`),
-        path.join(schemasDir, 'v1', `${schema.schemaName}.schema.json`)
+        path.join(schemasDir, targetVersion, `${schema.schemaName}.schema.yaml`),
+        path.join(schemasDir, targetVersion, `${schema.schemaName}.schema.json`)
       ];
       
       for (const schemaPath of versionedPaths) {
@@ -105,7 +112,7 @@ export async function modelCommand(): Promise<void> {
     
     // Write the generated file to versioned locations
     const versionedOutputFile = path.join(versionedOutputDir, 'schemas.ts');
-    const sourceVersionedOutputFile = path.join(__dirname, '../../src/types/v1/schemas.ts');
+    const sourceVersionedOutputFile = path.join(__dirname, `../../src/types/${targetVersion}/schemas.ts`);
     
     // Ensure source versioned directory exists
     const sourceVersionedDir = path.dirname(sourceVersionedOutputFile);
@@ -117,8 +124,8 @@ export async function modelCommand(): Promise<void> {
     fs.writeFileSync(sourceVersionedOutputFile, generatedContent);
     
     console.log(`✅ TypeScript models generated successfully!`);
-    console.log(`📁 Dist (v1): ${versionedOutputFile}`);
-    console.log(`📁 Source (v1): ${sourceVersionedOutputFile}`);
+    console.log(`📁 Dist (${targetVersion}): ${versionedOutputFile}`);
+    console.log(`📁 Source (${targetVersion}): ${sourceVersionedOutputFile}`);
     
   } catch (error) {
     console.error('❌ Error generating TypeScript models:', error);

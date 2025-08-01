@@ -13,6 +13,8 @@ This specification defines the EvalGuard schema system for model evaluation task
   - [4.1 Task Schema](#41-task-schema)
   - [4.2 Metric Schema](#42-metric-schema)
   - [4.3 Threshold Schema](#43-threshold-schema)
+  - [4.4 Report Schema](#44-report-schema)
+  - [4.5 API Schema](#45-api-schema)
 - [5. Validation Rules](#5-validation-rules)
 - [6. Schema File Organization](#6-schema-file-organization)
 - [7. Schema Implementation](#7-schema-implementation)
@@ -174,6 +176,149 @@ tags:
 
 The Threshold Schema defines performance thresholds for interpreting metric scores.
 
+### 4.4 Report Schema
+
+#### 4.4.1 Purpose
+
+The Report Schema defines the structure for model evaluation reports, including context, tasks, and results.
+
+### 4.5 API Schema
+
+#### 4.5.1 Purpose
+
+The API Schema defines the REST API interface for accessing evaluation reports and related data. This OpenAPI specification enables client implementations and provides standardized access to EvalGuard data.
+
+#### 4.5.2 Key Endpoints
+
+- **`GET /reports`**: List evaluation reports with filtering by model name, source, task, or metric
+- **`GET /reports/{report_id}`**: Get specific report by ID
+- **`GET /reports/{report_id}/metrics`**: Get metrics for a report
+- **`GET /thresholds`**: Get performance thresholds for multiple tasks and metrics
+- **`GET /models`**: List available models
+- **`GET /tasks`**: List available tasks
+
+#### 4.5.3 Query Parameters
+
+The `/reports` endpoint supports filtering by:
+- **`model_name`**: Full model path (e.g., `meta-llama/Llama-3.1-8B-Instruct`)
+- **`model_source`**: Model source/organization (e.g., `hf` for Hugging Face)
+- **`task_ref`**: Task reference (e.g., `truthfulqa_mc1`)
+- **`metric`**: Metric name (e.g., `acc`)
+- **`limit`**: Maximum number of reports to return
+- **`offset`**: Number of reports to skip for pagination
+
+The `/thresholds` endpoint supports:
+- **`tasks`**: Comma-separated list of task IDs (required, e.g., `truthfulqa_mc1,winogender_schemas`)
+- **`metrics`**: Comma-separated list of metric IDs (optional, e.g., `acc,acc_norm,pct_stereotype`)
+
+#### 4.5.4 Schema Reuse
+
+The API schema reuses existing schemas:
+- **Report**: References `report.schema.yaml`
+- **Task**: References `task.schema.yaml`
+- **Threshold**: References `threshold.schema.yaml`
+- **Additional schemas**: API-specific schemas for pagination, error handling, etc.
+
+#### 4.4.2 Properties
+
+| Property | Type | Required | Description |
+|----------|------|----------|-------------|
+| `id` | string | ❌ | Unique report identifier |
+| `metadata` | object | ❌ | Flexible key-value metadata about the report generation |
+| `context` | object | ❌ | Contextual information about the report generation |
+| `tasks` | array | ❌ | List of tasks in the report |
+| `results` | array | ❌ | List of results in the report |
+
+#### 4.4.3 Context Properties
+
+| Property | Type | Required | Description |
+|----------|------|----------|-------------|
+| `model_name` | string | ❌ | Name of the model being evaluated |
+| `model_source` | string | ❌ | Version of the model being evaluated |
+| `git_hash` | string | ❌ | Git hash of the model being evaluated |
+| `date` | number | ❌ | Timestamp of the report generation |
+| `execution` | object | ❌ | Execution information about the report generation |
+| `tools` | object | ❌ | Tools used to generate the report |
+
+#### 4.4.4 Execution Properties
+
+| Property | Type | Required | Description |
+|----------|------|----------|-------------|
+| `model_args_plain` | string | ❌ | Arguments used to instantiate the model |
+| `model_args_dict` | object | ❌ | Arguments used to instantiate the model (key/value string mapping) |
+
+#### 4.4.5 Task Properties
+
+| Property | Type | Required | Description |
+|----------|------|----------|-------------|
+| `task_ref` | string | ❌ | Reference to the task |
+| `dataset_path` | string | ❌ | Path to the dataset |
+| `dataset_name` | string | ❌ | Name of the dataset |
+| `output_type` | string | ❌ | Type of the output |
+| `repeats` | number | ❌ | Number of times the task was repeated |
+| `should_decontaminate` | boolean | ❌ | Whether to decontaminate the task |
+| `unsafe_code` | boolean | ❌ | Whether the task contains unsafe code |
+| `n_shot` | number | ❌ | Number of shots in the task |
+| `n_samples` | object | ❌ | Number of samples in the task |
+| `version` | number | ❌ | Version of the task result |
+| `metadata` | object | ❌ | Metadata about the task result |
+
+#### 4.4.6 Results Properties
+
+Results use a pattern-based structure where metric names (matching `^[a-zA-Z0-9_-]+$`) map to objects with:
+
+| Property | Type | Required | Description |
+|----------|------|----------|-------------|
+| `value` | number | ✅ | The metric value |
+| `stderr` | number | ❌ | Standard error of the metric |
+
+#### 4.4.7 Example
+
+```yaml
+id: "llama-3.1-8b-instruct-eval"
+metadata:
+  evaluation_date: "2025-01-15"
+  evaluator: "lm-eval-harness"
+context:
+  model_name: "meta-llama/Llama-3.1-8B-Instruct"
+  model_source: "hf"
+  git_hash: "abc123def456"
+  date: 1705312800
+  execution:
+    model_args_plain: "--model-path /path/to/model"
+    model_args_dict:
+      model_path: "/path/to/model"
+      device: "cuda"
+      precision: "fp16"
+  tools:
+    lm_eval:
+      version: "0.4.0"
+    transformers:
+      version: "4.35.0"
+tasks:
+  - task_ref: "truthfulqa_mc1"
+    dataset_path: "/path/to/dataset"
+    dataset_name: "truthful_qa"
+    output_type: "multiple_choice"
+    repeats: 1
+    should_decontaminate: false
+    unsafe_code: false
+    n_shot: 0
+    n_samples:
+      original: 817
+      effective: 817
+    version: 1
+    metadata:
+      category: "question_answering"
+results:
+  - acc:
+      value: 0.75
+      stderr: 0.015
+    acc_norm:
+      value: 0.72
+      stderr: 0.016
+```
+
 #### 4.3.2 Properties
 
 | Property | Type | Required | Description |
@@ -267,7 +412,9 @@ schemas/
 └── v1/                    # Version 1 schemas
     ├── task.schema.yaml
     ├── metric.schema.yaml
-    └── threshold.schema.yaml
+    ├── threshold.schema.yaml
+    ├── report.schema.yaml
+    └── api.schema.yaml
 ```
 
 ### 6.2 Schema File Naming Conventions

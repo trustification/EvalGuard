@@ -1,0 +1,474 @@
+openapi: 3.0.3
+info:
+  title: EvalGuard Reports API
+  description: |
+    API for accessing and querying model evaluation reports.
+    
+    This API provides access to evaluation reports stored in the EvalGuard system,
+    allowing clients to retrieve specific reports or query reports by various criteria
+    such as model name, evaluation date, or task type.
+  version: 1.0.0
+  contact:
+    name: EvalGuard Team
+    url: https://github.com/trustification/evalguard
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.evalguard.org/v1
+    description: Production server
+  - url: http://localhost:3000/v1
+    description: Development server
+
+paths:
+  /reports:
+    get:
+      summary: List evaluation reports
+      description: |
+        Retrieve a list of evaluation reports with optional filtering.
+        Supports filtering by model name, evaluation date range, task type, and other criteria.
+      operationId: listReports
+      parameters:
+        - name: model_name
+          in: query
+          description: Filter reports by model name (exact match)
+          required: false
+          schema:
+            type: string
+          example: "meta-llama/Llama-3.1-8B-Instruct"
+        - name: model_source
+          in: query
+          description: Filter reports by model source/organization
+          required: false
+          schema:
+            type: string
+          example: "hf"
+        - name: task_ref
+          in: query
+          description: Filter reports containing specific task
+          required: false
+          schema:
+            type: string
+          example: "truthfulqa_mc1"
+        - name: metric
+          in: query
+          description: Filter reports containing specific metric
+          required: false
+          schema:
+            type: string
+          example: "acc"
+        - name: limit
+          in: query
+          description: Maximum number of reports to return
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          example: 50
+        - name: offset
+          in: query
+          description: Number of reports to skip for pagination
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          example: 0
+      responses:
+        '200':
+          description: List of evaluation reports
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportList'
+              example:
+                reports:
+                  - id: "llama-3.1-8b-instruct-eval-2025-01-15"
+                    metadata:
+                      evaluation_date: "2025-01-15"
+                      evaluator: "lm-eval-harness"
+                    context:
+                      model_name: "Llama-3.1-8B-Instruct"
+                      model_source: "meta-llama"
+                      date: 1705312800
+                    tasks:
+                      - task_ref: "truthfulqa_mc1"
+                        dataset_name: "truthful_qa"
+                        n_samples:
+                          original: 817
+                          effective: 817
+                    results:
+                      - acc:
+                          value: 0.75
+                          stderr: 0.015
+                        acc_norm:
+                          value: 0.72
+                          stderr: 0.016
+                pagination:
+                  total: 150
+                  limit: 20
+                  offset: 0
+                  has_more: true
+        '400':
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /reports/{report_id}:
+    get:
+      summary: Get evaluation report by ID
+      description: |
+        Retrieve a specific evaluation report by its unique identifier.
+        Returns the complete report including context, tasks, and results.
+      operationId: getReport
+      parameters:
+        - name: report_id
+          in: path
+          description: Unique identifier of the report
+          required: true
+          schema:
+            type: string
+          example: "llama-3.1-8b-instruct-eval-2025-01-15"
+      responses:
+        '200':
+          description: Evaluation report details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Report'
+              example:
+                id: "llama-3.1-8b-instruct-eval-2025-01-15"
+                metadata:
+                  evaluation_date: "2025-01-15"
+                  evaluator: "lm-eval-harness"
+                  environment: "production"
+                context:
+                  model_name: "Llama-3.1-8B-Instruct"
+                  model_source: "meta-llama"
+                  git_hash: "abc123def456"
+                  date: 1705312800
+                  execution:
+                    model_args_plain: "--model-path /path/to/model"
+                    model_args_dict:
+                      model_path: "/path/to/model"
+                      device: "cuda"
+                      precision: "fp16"
+                  tools:
+                    lm_eval:
+                      version: "0.4.0"
+                    transformers:
+                      version: "4.35.0"
+                tasks:
+                  - task_ref: "truthfulqa_mc1"
+                    dataset_path: "/path/to/dataset"
+                    dataset_name: "truthful_qa"
+                    output_type: "multiple_choice"
+                    repeats: 1
+                    should_decontaminate: false
+                    unsafe_code: false
+                    n_shot: 0
+                    n_samples:
+                      original: 817
+                      effective: 817
+                    version: 1
+                    metadata:
+                      category: "question_answering"
+                results:
+                  - acc:
+                      value: 0.75
+                      stderr: 0.015
+                    acc_norm:
+                      value: 0.72
+                      stderr: 0.016
+        '404':
+          description: Report not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /reports/{report_id}/metrics:
+    get:
+      summary: Get metrics for a specific report
+      description: |
+        Retrieve only the metrics/results for a specific evaluation report.
+        Useful when you only need the performance data without the full context.
+      operationId: getReportMetrics
+      parameters:
+        - name: report_id
+          in: path
+          description: Unique identifier of the report
+          required: true
+          schema:
+            type: string
+          example: "llama-3.1-8b-instruct-eval-2025-01-15"
+        - name: metric
+          in: query
+          description: Filter to specific metric(s)
+          required: false
+          schema:
+            type: string
+          example: "acc"
+      responses:
+        '200':
+          description: Report metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  report_id:
+                    type: string
+                  metrics:
+                    type: array
+                    items:
+                      type: object
+                      patternProperties:
+                        "^[a-zA-Z0-9_-]+$":
+                          type: object
+                          properties:
+                            value:
+                              type: number
+                              description: The metric value
+                            stderr:
+                              type: number
+                              description: Standard error of the metric
+                          required:
+                            - value
+                          additionalProperties: false
+              example:
+                report_id: "llama-3.1-8b-instruct-eval-2025-01-15"
+                metrics:
+                  - acc:
+                      value: 0.75
+                      stderr: 0.015
+                    acc_norm:
+                      value: 0.72
+                      stderr: 0.016
+        '404':
+          description: Report not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /models:
+    get:
+      summary: List available models
+      description: |
+        Retrieve a list of all models that have evaluation reports in the system.
+        Useful for building model selection interfaces.
+      operationId: listModels
+      parameters:
+        - name: source
+          in: query
+          description: Filter by model source/organization
+          required: false
+          schema:
+            type: string
+          example: "meta-llama"
+      responses:
+        '200':
+          description: List of models
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  models:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ModelInfo'
+              example:
+                models:
+                  - name: "Llama-3.1-8B-Instruct"
+                    source: "meta-llama"
+                    report_count: 5
+                    latest_evaluation: "2025-01-15T10:30:00Z"
+                  - name: "phi-2"
+                    source: "microsoft"
+                    report_count: 3
+                    latest_evaluation: "2025-01-10T14:20:00Z"
+
+  /tasks:
+    get:
+      summary: List available tasks
+      description: |
+        Retrieve a list of all evaluation tasks available in the system.
+        Useful for building task selection interfaces.
+      operationId: listTasks
+      responses:
+        '200':
+          description: List of tasks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tasks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Task'
+              example:
+                tasks:
+                  - id: "truthfulqa_mc1"
+                    name: "TruthfulQA Multiple Choice"
+                    description: "Evaluates model's ability to answer questions truthfully"
+                    category: "question_answering"
+                    metrics:
+                      - "acc"
+                      - "acc_norm"
+                    tags:
+                      - "truthfulness"
+                      - "multiple_choice"
+                    languages:
+                      - "en"
+
+  /thresholds:
+    get:
+      summary: Get thresholds for multiple tasks and metrics
+      description: |
+        Retrieve performance thresholds for multiple tasks and metrics in a single request.
+        Useful for interpreting metric results across multiple tasks in a report.
+        Supports filtering by specific tasks and metrics.
+      operationId: getThresholds
+      parameters:
+        - name: tasks
+          in: query
+          description: Comma-separated list of task IDs to get thresholds for
+          required: true
+          schema:
+            type: string
+          example: "truthfulqa_mc1,winogender_schemas"
+        - name: metrics
+          in: query
+          description: Comma-separated list of metric IDs to filter by (optional)
+          required: false
+          schema:
+            type: string
+          example: "acc,acc_norm,pct_stereotype"
+      responses:
+        '200':
+          description: Thresholds for the specified tasks and metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  thresholds:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Threshold'
+              example:
+                thresholds:
+                  - task: "truthfulqa_mc1"
+                    thresholds:
+                      acc:
+                        - label: "Poor"
+                          max: 0.5
+                          interpretation: "Performance below acceptable threshold"
+                        - label: "Good"
+                          min: 0.5
+                          max: 0.8
+                          interpretation: "Acceptable performance"
+                        - label: "Excellent"
+                          min: 0.8
+                          interpretation: "Outstanding performance"
+                      acc_norm:
+                        - label: "Poor"
+                          max: 0.5
+                        - label: "Good"
+                          min: 0.5
+                          max: 0.8
+                        - label: "Excellent"
+                          min: 0.8
+                  - task: "winogender_schemas"
+                    thresholds:
+                      acc:
+                        - label: "Poor"
+                          max: 0.6
+                          interpretation: "High gender bias in coreference"
+                        - label: "Acceptable"
+                          min: 0.6
+                          max: 0.8
+                          interpretation: "Moderate gender bias"
+                        - label: "Good"
+                          min: 0.8
+                          interpretation: "Low gender bias"
+                      pct_stereotype:
+                        - label: "High Bias"
+                          min: 0.7
+                          interpretation: "Strong gender stereotype following"
+                        - label: "Moderate Bias"
+                          min: 0.4
+                          max: 0.7
+                          interpretation: "Moderate gender stereotype following"
+                        - label: "Low Bias"
+                          max: 0.4
+                          interpretation: "Minimal gender stereotype following"
+        '400':
+          description: Invalid parameters (missing tasks or invalid task/metric names)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Thresholds not found for one or more specified tasks
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Report:
+      $ref: './report.schema.yaml'
+
+    ReportList:
+      $ref: './report_list.schema.yaml'
+
+    PaginationInfo:
+      $ref: './pagination_info.schema.yaml'
+
+    ModelInfo:
+      $ref: './model_info.schema.yaml'
+
+    Task:
+      $ref: './task.schema.yaml'
+
+    Threshold:
+      $ref: './threshold.schema.yaml'
+
+    Error:
+      $ref: './error.schema.yaml'
+
+tags:
+  - name: Reports
+    description: Operations for accessing evaluation reports
+  - name: Models
+    description: Operations for accessing model information
+  - name: Tasks
+    description: Operations for accessing task information 

@@ -1,0 +1,19 @@
+$schema: http://json-schema.org/draft/2020-12/schema
+$id: https://github.com/evalguard/evalguard/schemas/v1/error.schema.yaml
+title: Error
+description: Error response
+type: object
+properties:
+  error:
+    type: string
+    description: Error message
+  code:
+    type: string
+    description: Error code
+  details:
+    type: object
+    description: Additional error details
+    additionalProperties: true
+required:
+  - error
+additionalProperties: false 
