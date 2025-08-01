@@ -29,6 +29,14 @@ build: install
 	@chmod +x dist/index.js
 	@echo "✅ Build complete!"
 
+# Build standalone binary
+binary: install
+	@echo "🔨 Building standalone binary..."
+	npm run binary
+	@echo "✅ Binary build complete!"
+	@echo "📦 Binaries created in ./bin directory:"
+	@ls -la bin/ 2>/dev/null || echo "   (binaries will be created here)"
+
 # Clean build artifacts
 clean:
 	@echo "🧹 Cleaning build artifacts..."

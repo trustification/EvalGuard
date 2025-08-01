@@ -1,5 +1,5 @@
 // Auto-generated TypeScript interfaces from EvalGuard schemas
-// Generated on: 2025-07-31T13:50:59.000Z
+// Generated on: 2025-08-01T05:58:57.057Z
 
 /**
  * Schema for a model evaluation task, based on lm-eval report data plus user-added metadata.
