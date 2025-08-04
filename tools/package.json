@@ -27,7 +27,8 @@
     "commander": "^11.1.0",
     "glob": "^10.3.10",
     "js-yaml": "^4.1.0",
-    "json-schema-to-typescript": "^15.0.4"
+    "json-schema-to-typescript": "^15.0.4",
+    "@trustification/evalguard-api-model": "file:../api-models/typescript"
   },
   "devDependencies": {
     "@types/glob": "^8.1.0",

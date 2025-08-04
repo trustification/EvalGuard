@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import { modelCommand } from './commands/model';
+
 import { validateCommand } from './commands/validate';
 import { generateCommand } from './commands/generate';
+import { addApiCommand } from './commands/api';
 
 const program = new Command();
 
@@ -12,12 +13,7 @@ program
   .description('CLI tool for EvalGuard schema management and validation')
   .version('1.0.0');
 
-// Add model command
-program
-  .command('model')
-  .description('Generate/update TypeScript data model in ./tools/schema-model')
-  .option('-t, --target-version <version>', 'Target schema version (default: v1)', 'v1')
-  .action((options) => modelCommand(options.targetVersion));
+
 
 // Add validate command
 program
@@ -34,5 +30,8 @@ program
   .option('-f, --file <path>', 'Path to lm-eval report JSON file')
   .option('-d, --folder <path>', 'Path to folder containing lm-eval report JSON files')
   .action(generateCommand);
+
+// Add API command
+addApiCommand(program);
 
 program.parse(); 

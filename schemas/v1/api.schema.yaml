@@ -240,19 +240,18 @@ paths:
                     type: array
                     items:
                       type: object
-                      patternProperties:
-                        "^[a-zA-Z0-9_-]+$":
-                          type: object
-                          properties:
-                            value:
-                              type: number
-                              description: The metric value
-                            stderr:
-                              type: number
-                              description: Standard error of the metric
-                          required:
-                            - value
-                          additionalProperties: false
+                      additionalProperties:
+                        type: object
+                        properties:
+                          value:
+                            type: number
+                            description: The metric value
+                          stderr:
+                            type: number
+                            description: Standard error of the metric
+                        required:
+                          - value
+                        additionalProperties: false
               example:
                 report_id: "llama-3.1-8b-instruct-eval-2025-01-15"
                 metrics:

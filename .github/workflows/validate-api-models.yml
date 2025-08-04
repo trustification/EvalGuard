@@ -1,0 +1,160 @@
+name: Validate API Models
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'API specification version to validate (e.g., v1, v2)'
+        required: true
+        default: 'v1'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        
+    - name: Cache Maven packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+        
+    - name: Cache npm dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+          
+    - name: Get API version
+      id: api-version
+      run: |
+        if [ "${{ github.event.inputs.version }}" != "" ]; then
+          echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+        else
+          echo "version=v1" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Check Git repository state
+      run: |
+        echo "🔍 Checking Git repository state..."
+        
+        # Check if repository is clean
+        if [ -n "$(git status --porcelain)" ]; then
+          echo "⚠️ Warning: Repository has uncommitted changes:"
+          git status --porcelain
+          echo ""
+          echo "This might affect the validation results."
+        else
+          echo "✅ Repository is clean"
+        fi
+        
+        # Show current branch and commit
+        echo "📋 Current branch: $(git branch --show-current)"
+        echo "📋 Current commit: $(git rev-parse --short HEAD)"
+        echo "📋 Commit message: $(git log -1 --pretty=format:'%s')"
+        
+    - name: Test Java model generation
+      run: |
+        echo "🔨 Testing Java model generation..."
+        cd api-models/java
+        mvn clean generate-sources compile -Dapi.version=${{ steps.api-version.outputs.version }} -q
+        echo "✅ Java models generated successfully"
+        
+    - name: Test TypeScript model generation
+      run: |
+        echo "🔨 Testing TypeScript model generation..."
+        cd api-models/typescript
+        npm ci --silent
+        npm run generate -- --version ${{ steps.api-version.outputs.version }}
+        npm run build --silent
+        echo "✅ TypeScript models generated successfully"
+        
+    - name: Validate tools configuration
+      run: |
+        echo "🔍 Validating tools configuration..."
+        cd tools
+        npm ci --silent
+        npm run build --silent
+        node dist/index.js validate
+        echo "✅ Tools configuration validated"
+        
+    - name: Test make generate (no unintended file changes)
+      run: |
+        echo "🔍 Testing make generate doesn't create/modify unintended files..."
+        
+        # Store current Git state
+        echo "📸 Storing current Git state..."
+        git status --porcelain > /tmp/before_generate.txt
+        git diff --name-only > /tmp/before_generate_diff.txt
+        
+        # Clean generated files to start fresh
+        echo "🧹 Cleaning previously generated files..."
+        rm -rf api-models/typescript/dist api-models/typescript/src/generated
+        rm -rf api-models/java/target
+        
+        # Run make validate-generate
+        echo "🔨 Running make validate-generate..."
+        cd tools
+        make validate-generate version=${{ steps.api-version.outputs.version }}
+        cd ..
+        
+        # The make validate-generate target handles all the validation logic
+        echo "✅ make validate-generate completed successfully"
+        
+    - name: Validate generated files
+      run: |
+        echo "🔍 Validating generated files..."
+        
+        # Check Java generated files
+        if [ -d "api-models/java/target/generated-sources/openapi" ]; then
+          echo "✅ Java models generated in target/generated-sources/openapi"
+          find api-models/java/target/generated-sources/openapi -name "*.java" | head -5
+        else
+          echo "❌ Java models not generated"
+          exit 1
+        fi
+        
+        # Check TypeScript generated files
+        if [ -d "api-models/typescript/src/generated" ]; then
+          echo "✅ TypeScript models generated in src/generated"
+          find api-models/typescript/src/generated -name "*.ts" | head -5
+        else
+          echo "❌ TypeScript models not generated"
+          exit 1
+        fi
+        
+        echo "✅ All generated files validated"
+        
+    - name: Summary
+      run: |
+        echo "🎉 API Models validation completed successfully!"
+        echo "Version: ${{ steps.api-version.outputs.version }}"
+        echo "✅ Configurations validated"
+        echo "✅ Java models generated and compiled"
+        echo "✅ TypeScript models generated and built"
+        echo "✅ Tools configuration validated"
+        echo "✅ make generate doesn't create unintended files"
+        echo "✅ Generated files validated" 

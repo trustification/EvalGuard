@@ -5,5 +5,4 @@ export interface CommandOptions {
 }
 
 // Export all types
-export * from './validation';
-export * from './v1/schemas'; 
+export * from './validation'; 

@@ -2,7 +2,14 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
 import { glob } from 'glob';
-import { Task, Metric } from '../types/v1/schemas';
+import { Task } from '@trustification/evalguard-api-model';
+
+// Local Metric type for generating local YAML files
+interface Metric {
+  id: string;
+  name: string;
+  direction: 'higher_is_better' | 'lower_is_better';
+}
 
 interface GenerateOptions {
   file?: string;
@@ -205,7 +212,7 @@ export async function generateCommand(options: GenerateOptions): Promise<void> {
       if (existingTask) {
         // Check if we need to add new metrics to existing task
         const existingMetrics = new Set(existingTask.metrics);
-        const newMetrics = task.metrics.filter(metricId => !existingMetrics.has(metricId));
+        const newMetrics = task.metrics.filter((metricId: string) => !existingMetrics.has(metricId));
         
         if (newMetrics.length > 0) {
           // Update existing task with new metrics
