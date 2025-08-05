@@ -15,6 +15,9 @@ jobs:
     if: |
       github.repository_owner == 'trustification' && 
       !startsWith(github.head_ref, 'release/')
+    concurrency:
+      group: deploy-snapshot
+      cancel-in-progress: true
     outputs:
       java_version: ${{ steps.java-version.outputs.version }}
       typescript_version: ${{ steps.typescript-version.outputs.version }}
@@ -35,46 +38,59 @@ jobs:
           node-version: '20'
           registry-url: 'https://npm.pkg.github.com'
           scope: '@trustification'
-          cache: 'npm'
 
       - name: Get Java project version
         id: java-version
         run: |
           cd api-models/java
-          echo "version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> "$GITHUB_OUTPUT"
+          base_version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          # Remove -SNAPSHOT suffix and add SHA
+          version="${base_version%-SNAPSHOT}-$(echo ${{ github.sha }} | cut -c1-8)"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "🔍 Java version: $version"
+          echo "🔍 Commit SHA: ${{ github.sha }}"
+          echo "🔍 Workflow run ID: ${{ github.run_id }}"
 
       - name: Get TypeScript project version
         id: typescript-version
         run: |
           cd api-models/typescript
-          echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+          base_version=$(node -p "require('./package.json').version")
+          # Remove -SNAPSHOT suffix and add SHA
+          version="${base_version%-SNAPSHOT}-$(echo ${{ github.sha }} | cut -c1-8)"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "🔍 TypeScript version: $version"
 
       - name: Deploy Java snapshot to GitHub
-        if: |
-          contains(steps.java-version.outputs.version, 'SNAPSHOT') && 
-          github.repository == 'trustification/evalguard'
+        if: github.repository == 'trustification/evalguard'
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "📦 Deploying Java snapshot version: ${{ steps.java-version.outputs.version }}"
+          echo "📦 Deploying Java version: ${{ steps.java-version.outputs.version }}"
           cd api-models/java
+          # Temporarily set the version to the SHA-based version
+          mvn versions:set -DnewVersion=${{ steps.java-version.outputs.version }}
           mvn clean generate-sources compile -Dapi.version=v1
           mvn deploy -Dapi.version=v1 -B -ff -DskipTests=true
+          # Reset to original version
+          mvn versions:set -DnewVersion=1.0.0-SNAPSHOT
 
       - name: Deploy TypeScript snapshot to GitHub
-        if: |
-          contains(steps.typescript-version.outputs.version, 'SNAPSHOT') && 
-          github.repository == 'trustification/evalguard'
+        if: github.repository == 'trustification/evalguard'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "📦 Deploying TypeScript snapshot version: ${{ steps.typescript-version.outputs.version }}"
+          echo "📦 Deploying TypeScript version: ${{ steps.typescript-version.outputs.version }}"
           cd api-models/typescript
+          # Temporarily set the version to the SHA-based version
+          npm version ${{ steps.typescript-version.outputs.version }} --no-git-tag-version
           npm ci
           npm run generate --version v1
           npm run build
           npm publish
+          # Reset to original version
+          npm version 1.0.0-SNAPSHOT --no-git-tag-version
 
   release-snapshot:
     runs-on: ubuntu-latest
@@ -82,8 +98,6 @@ jobs:
     environment: staging
     needs: deploy-snapshot
     if: |
-      (contains(needs.deploy-snapshot.outputs.java_version, 'SNAPSHOT') || 
-       contains(needs.deploy-snapshot.outputs.typescript_version, 'SNAPSHOT')) &&
       github.repository_owner == 'trustification' && 
       !startsWith(github.head_ref, 'release/')
     steps:
@@ -94,7 +108,7 @@ jobs:
           PROJECT_VERSION: ${{ needs.deploy-snapshot.outputs.java_version }}
         continue-on-error: true
         with:
-          github-token: ${{ secrets.STAGING_PAT }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const repo = context.repo;
             const tag = process.env.PROJECT_VERSION;
@@ -120,7 +134,7 @@ jobs:
           PROJECT_VERSION: ${{ needs.deploy-snapshot.outputs.typescript_version }}
         continue-on-error: true
         with:
-          github-token: ${{ secrets.STAGING_PAT }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const repo = context.repo;
             const tag = process.env.PROJECT_VERSION;
@@ -148,7 +162,7 @@ jobs:
         env:
           RELEASE_ID: ${{ steps.existing-java-release.outputs.id }}
         with:
-          github-token: ${{ secrets.STAGING_PAT }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const repo = context.repo;
             const releaseId = process.env.RELEASE_ID;
@@ -174,7 +188,7 @@ jobs:
         env:
           RELEASE_ID: ${{ steps.existing-typescript-release.outputs.id }}
         with:
-          github-token: ${{ secrets.STAGING_PAT }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const repo = context.repo;
             const releaseId = process.env.RELEASE_ID;
@@ -195,26 +209,27 @@ jobs:
             }
 
       - name: Delete Java tag if exists
-        if: contains(needs.deploy-snapshot.outputs.java_version, 'SNAPSHOT')
         continue-on-error: true
-        run: git push --delete origin ${{ needs.deploy-snapshot.outputs.java_version }}
+        run: |
+          echo "Deleting Java tag: ${{ needs.deploy-snapshot.outputs.java_version }}"
+          git push --delete origin ${{ needs.deploy-snapshot.outputs.java_version }} || echo "Tag deletion failed, continuing..."
 
       - name: Delete TypeScript tag if exists
-        if: contains(needs.deploy-snapshot.outputs.typescript_version, 'SNAPSHOT')
         continue-on-error: true
-        run: git push --delete origin ${{ needs.deploy-snapshot.outputs.typescript_version }}
+        run: |
+          echo "Deleting TypeScript tag: ${{ needs.deploy-snapshot.outputs.typescript_version }}"
+          git push --delete origin ${{ needs.deploy-snapshot.outputs.typescript_version }} || echo "Tag deletion failed, continuing..."
 
       # Workaround for GitHub release cache issue — avoids ghost "draft" releases
       - name: Sleep to allow release deletion to propagate
         run: sleep 5
 
       - name: Create new Java release
-        if: contains(needs.deploy-snapshot.outputs.java_version, 'SNAPSHOT')
         uses: actions/github-script@v7
         env:
           PROJECT_VERSION: ${{ needs.deploy-snapshot.outputs.java_version }}
         with:
-          github-token: ${{ secrets.STAGING_PAT }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const repo = context.repo;
             const tag = process.env.PROJECT_VERSION;
@@ -232,12 +247,11 @@ jobs:
             console.log(`Java release created: ${response.data.html_url}`);
 
       - name: Create new TypeScript release
-        if: contains(needs.deploy-snapshot.outputs.typescript_version, 'SNAPSHOT')
         uses: actions/github-script@v7
         env:
           PROJECT_VERSION: ${{ needs.deploy-snapshot.outputs.typescript_version }}
         with:
-          github-token: ${{ secrets.STAGING_PAT }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const repo = context.repo;
             const tag = process.env.PROJECT_VERSION;
