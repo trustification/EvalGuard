@@ -98,7 +98,7 @@ jobs:
         cd tools
         npm ci --silent
         npm run build --silent
-        node dist/index.js config validate
+        node dist/index.js config validate --root ../
         echo "✅ Tools configuration validated"
         
     - name: Test API model generation (no unintended file changes)
@@ -112,13 +112,14 @@ jobs:
         
         # Clean generated files to start fresh
         echo "🧹 Cleaning previously generated files..."
-        rm -rf api-models/typescript/dist api-models/typescript/src/generated
-        rm -rf api-models/java/target
+        cd tools
+        node dist/index.js api clean --type both
+        cd ..
         
         # Run API model validation
         echo "🔨 Running API model validation..."
         cd tools
-        node dist/index.js api-mgmt validate --spec-version=${{ steps.api-version.outputs.version }}
+        node dist/index.js api validate --spec-version=${{ steps.api-version.outputs.version }}
         cd ..
         
         # The API model validation handles all the validation logic
