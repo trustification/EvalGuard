@@ -49,11 +49,6 @@ The specification follows industry standards and uses RFC 2119 terminology for c
 evalguard/
 ├── schemas/           # Schema definitions (see SPECIFICATION.md)
 │   └── v1/           # Version 1 schemas
-│       ├── task.schema.yaml
-│       ├── metric.schema.yaml
-│       ├── threshold.schema.yaml
-│       ├── report.schema.yaml
-│       └── api.schema.yaml
 ├── config/            # Configuration files for interpretation
 │   ├── tasks/         # Task definitions and metadata
 │   ├── metrics/       # Metric definitions and types
@@ -61,9 +56,6 @@ evalguard/
 ├── reports/           # Community-contributed model evaluation reports
 │   └── lm-eval/       # lm-evaluation-harness reports
 ├── tools/             # CLI tool for schema management
-│   ├── src/
-│   ├── dist/
-│   └── bin/           # Standalone binaries
 ├── SPECIFICATION.md   # Formal schema specification
 ├── LICENSE
 ├── NOTICE
@@ -72,17 +64,26 @@ evalguard/
 
 ## Tools and CLI
 
-EvalGuard provides a CLI tool for working with schemas and configurations. The tool implements the requirements defined in the [EvalGuard Schema Specification](SPECIFICATION.md):
+EvalGuard provides a CLI tool for schema validation and data generation. The tool helps with:
 
-## API
+- **Schema Validation**: Validate configuration files against EvalGuard schemas
+- **Data Generation**: Generate tasks and metrics from evaluation reports
+- **Model Generation**: Generate TypeScript interfaces from schemas
+- **Cross-Reference Validation**: Ensure consistency between tasks, metrics, and thresholds
 
-EvalGuard provides a REST API for accessing evaluation reports. The API is defined in the [OpenAPI Specification](schemas/v1/api.schema.yaml) and supports:
+The tool implements the requirements defined in the [EvalGuard Schema Specification](SPECIFICATION.md):
+
+## API Specification
+
+EvalGuard defines a REST API specification for accessing evaluation reports. The API is defined in the [OpenAPI Specification](schemas/v1/api.schema.yaml) and supports:
 
 - **Report Retrieval**: Get specific reports by ID or query by model name, source, task, or metric
 - **Model Discovery**: List available models and their evaluation history
 - **Task Information**: Access task definitions and metadata
 - **Metrics Access**: Retrieve performance metrics for specific reports
 - **Threshold Access**: Get performance thresholds for interpreting metric results
+
+> **Note**: This is a **specification only**. The API is not implemented in this repository. Anyone interested in providing EvalGuard API services can implement this specification.
 
 ### Example API Usage
 
@@ -118,19 +119,22 @@ make build
 
 ```bash
 # Validate all configuration files
-evalguard validate
+evalguard config validate
 
 # Validate specific types
-evalguard validate -t tasks
-evalguard validate -t metrics
-evalguard validate -t thresholds
+evalguard config validate -t tasks
+evalguard config validate -t metrics
+evalguard config validate -t thresholds
 
-# Generate TypeScript models from schemas
-evalguard model
+# Validate from a different root directory
+evalguard config validate --root /path/to/evalguard
 
 # Generate tasks/metrics from evaluation reports
-evalguard generate -f report.json
-evalguard generate -d reports/
+evalguard lm-eval gen -f report.json
+evalguard lm-eval gen -d reports/
+
+# Generate TypeScript models from schemas
+evalguard api gen --type js --spec-version v1
 ```
 
 ### Building Standalone Binaries
@@ -145,16 +149,4 @@ make binary
 
 ### Development
 
-```bash
-# Install dependencies
-make install
-
-# Build TypeScript
-make build
-
-# Clean build artifacts
-make clean
-
-# Run in development mode
-make dev
-```
+For development instructions, see the [tools README](tools/README.md).

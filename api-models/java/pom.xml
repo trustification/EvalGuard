@@ -13,8 +13,7 @@
     <description>Java model classes for EvalGuard API (Jackson only)</description>
 
     <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <openapi-generator.version>7.2.0</openapi-generator.version>
         <jackson.version>2.17.1</jackson.version>
@@ -74,8 +73,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
                 <configuration>
-                    <source>21</source>
-                    <target>21</target>
+                    <release>21</release>
                 </configuration>
             </plugin>
             <plugin>
@@ -99,6 +97,7 @@
                                 <dateLibrary>java8</dateLibrary>
                                 <serializationLibrary>jackson</serializationLibrary>
                                 <hideGenerationTimestamp>true</hideGenerationTimestamp>
+                                <javaVersion>21</javaVersion>
                             </configOptions>
                         </configuration>
                     </execution>

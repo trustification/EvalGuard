@@ -2,20 +2,6 @@ import { Command } from 'commander';
 import { execSync } from 'child_process';
 import * as path from 'path';
 
-interface ApiOptions {
-  baseUrl?: string;
-  apiKey?: string;
-  model?: string;
-  task?: string;
-  limit?: number;
-}
-
-export async function apiCommand(options: ApiOptions): Promise<void> {
-  console.log('🔌 API client functionality temporarily disabled');
-  console.log('Please use evalguard api-mgmt commands for API model management');
-  console.log('Example: evalguard api-mgmt gen --type js --version v1');
-}
-
 // API Model Generation Functions
 async function generateApiModels(type: string, version: string): Promise<void> {
   console.log(`🔧 Generating API models (${type}) from version ${version}...`);
@@ -26,10 +12,10 @@ async function generateApiModels(type: string, version: string): Promise<void> {
       execSync(`cd ${path.join(__dirname, '../../../api-models/java')} && mvn clean generate-sources compile -Dapi.version=${version}`, { stdio: 'inherit' });
     }
     
-                 if (type === 'js' || type === 'both') {
-               console.log('📦 Generating TypeScript models...');
-               execSync(`cd ${path.join(__dirname, '../../../api-models/typescript')} && npm install && npm run generate --version ${version} && npm run build`, { stdio: 'inherit' });
-             }
+    if (type === 'js' || type === 'both') {
+      console.log('📦 Generating TypeScript models...');
+      execSync(`cd ${path.join(__dirname, '../../../api-models/typescript')} && npm install && npm run generate --version ${version} && npm run build`, { stdio: 'inherit' });
+    }
     
     console.log('✅ API models generated successfully!');
   } catch (error) {
@@ -163,29 +149,10 @@ async function publishApiModels(type: string, version: string): Promise<void> {
 }
 
 export function addApiCommand(program: Command): void {
-  // API client interaction (legacy command)
-  program
-    .command('api')
-    .description('Interact with EvalGuard API')
-    .option('-u, --base-url <url>', 'API base URL', 'http://localhost:8080')
-    .option('-k, --api-key <key>', 'API key for authentication')
-    .option('-m, --model <model>', 'Filter by model name')
-    .option('-t, --task <task>', 'Filter by task reference')
-    .option('-l, --limit <number>', 'Limit number of results', '10')
-    .action(async (options) => {
-      await apiCommand({
-        baseUrl: options.baseUrl,
-        apiKey: options.apiKey,
-        model: options.model,
-        task: options.task,
-        limit: parseInt(options.limit)
-      });
-    });
-
   // API management commands
   const apiMgmt = program
-    .command('api-mgmt')
-    .description('API management commands');
+    .command('api')
+    .description('API model management commands');
 
   // API model generation
   apiMgmt

@@ -15,6 +15,7 @@ help:
 	@echo "  evalguard config validate           # Validate all config files"
 	@echo "  evalguard config validate tasks     # Validate task files"
 	@echo "  evalguard lm-eval gen --file <path> # Generate from report"
+	@echo "  evalguard api gen --type js         # Generate API models"
 	@echo "  evalguard api --help                # API commands"
 	@echo ""
 
@@ -62,6 +63,7 @@ setup: install build
 	@echo "  evalguard config validate           # Validate all config files"
 	@echo "  evalguard config validate tasks     # Validate task files"
 	@echo "  evalguard lm-eval gen --file <path> # Generate from report"
+	@echo "  evalguard api gen --type js         # Generate API models"
 	@echo "  evalguard api --help                # API commands"
 	@echo "  evalguard dev                       # Run in development mode" 
 

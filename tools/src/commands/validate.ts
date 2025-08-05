@@ -14,12 +14,22 @@ interface ValidationContext {
   validators: any;
 }
 
-export async function validateCommand(options: CommandOptions): Promise<void> {
+interface ValidateOptions extends CommandOptions {
+  root?: string; // Root directory for config and schemas
+}
+
+export async function validateCommand(options: ValidateOptions): Promise<void> {
   try {
     console.log('🔍 Validating configuration files...');
     
-    const configDir = path.resolve(__dirname, '../../../config');
-    const schemasDir = path.resolve(__dirname, '../../../schemas');
+    // Determine root directory
+    const rootDir = options.root ? path.resolve(options.root) : process.cwd();
+    const configDir = path.resolve(rootDir, 'config');
+    const schemasDir = path.resolve(rootDir, 'schemas');
+    
+    console.log(`📁 Using root directory: ${rootDir}`);
+    console.log(`📁 Config directory: ${configDir}`);
+    console.log(`📁 Schemas directory: ${schemasDir}`);
     
     // Initialize AJV validator
     const ajv = new Ajv2020({ 
@@ -251,22 +261,28 @@ function loadVersionedSchema(schemasDir: string, schemaName: string): any {
     path.join(schemasDir, 'v1', `${schemaName}.schema.json`)
   ];
   
+  console.log(`🔍 Looking for ${schemaName} schema in:`);
   for (const schemaPath of versionedPaths) {
+    console.log(`  📄 ${schemaPath}`);
     if (fs.existsSync(schemaPath)) {
       try {
         const content = fs.readFileSync(schemaPath, 'utf-8');
         if (schemaPath.endsWith('.yaml')) {
+          console.log(`✅ Found and loaded: ${schemaPath}`);
           return yaml.load(content);
         } else {
+          console.log(`✅ Found and loaded: ${schemaPath}`);
           return JSON.parse(content);
         }
       } catch (error) {
         console.warn(`⚠️  Could not parse schema ${schemaPath}, trying next option`);
       }
+    } else {
+      console.log(`❌ Not found: ${schemaPath}`);
     }
   }
   
-  throw new Error(`No schema file found for ${schemaName} in versioned schemas`);
+  throw new Error(`No schema file found for ${schemaName} in versioned schemas. Searched in: ${schemasDir}/v1/`);
 }
 
 async function validateFile(filePath: string, validators: any, expectedType?: string): Promise<ValidationResult> {

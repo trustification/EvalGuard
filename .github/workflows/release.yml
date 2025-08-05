@@ -66,8 +66,8 @@ jobs:
           echo "version=v1" >> $GITHUB_OUTPUT
         fi
         
-          - name: Build and Release Java Models
-        if: ${{ github.event.inputs.release_java != 'false' }}
+    - name: Build and Release Java Models
+      if: ${{ github.event.inputs.release_java != 'false' }}
         run: |
           echo "📦 Building and releasing Java models..."
           cd api-models/java
@@ -82,8 +82,8 @@ jobs:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
-          - name: Build and Release TypeScript Models
-        if: ${{ github.event.inputs.release_typescript != 'false' }}
+    - name: Build and Release TypeScript Models
+      if: ${{ github.event.inputs.release_typescript != 'false' }}
         run: |
           echo "📦 Building and releasing TypeScript models..."
           cd api-models/typescript

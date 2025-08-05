@@ -23,6 +23,7 @@ configCommand
   .description('Validate files in config folders against schemas')
   .option('-t, --type <type>', 'Validate specific type: metrics, tasks, or thresholds')
   .option('-f, --file <path>', 'Validate specific file path')
+  .option('-r, --root <path>', 'Root directory containing config and schemas folders')
   .action(validateCommand);
 
 // Add lm-eval command
@@ -37,20 +38,7 @@ lmEvalCommand
   .option('-d, --folder <path>', 'Path to folder containing lm-eval report JSON files')
   .action(generateCommand);
 
-// Add legacy commands for backward compatibility
-program
-  .command('validate')
-  .description('Validate files in config folders against schemas (legacy)')
-  .option('-t, --type <type>', 'Validate specific type: metrics, tasks, or thresholds')
-  .option('-f, --file <path>', 'Validate specific file path')
-  .action(validateCommand);
 
-program
-  .command('generate')
-  .description('Generate tasks and metrics from lm-eval report(s) (legacy)')
-  .option('-f, --file <path>', 'Path to lm-eval report JSON file')
-  .option('-d, --folder <path>', 'Path to folder containing lm-eval report JSON files')
-  .action(generateCommand);
 
 // Add API command
 addApiCommand(program);
