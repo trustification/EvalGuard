@@ -1,11 +1,8 @@
 name: Stage
 
 on:
-  pull_request_target:
-    types:
-      - closed
-    branches:
-      - main
+  push:
+    branches: [ main ]
     paths:
       - 'api-models/**'
       - 'schemas/**'
@@ -17,7 +14,6 @@ jobs:
     name: Deploy snapshot
     if: |
       github.repository_owner == 'trustification' && 
-      github.event.pull_request.merged == true && 
       !startsWith(github.head_ref, 'release/')
     outputs:
       java_version: ${{ steps.java-version.outputs.version }}
@@ -89,7 +85,6 @@ jobs:
       (contains(needs.deploy-snapshot.outputs.java_version, 'SNAPSHOT') || 
        contains(needs.deploy-snapshot.outputs.typescript_version, 'SNAPSHOT')) &&
       github.repository_owner == 'trustification' && 
-      github.event.pull_request.merged == true && 
       !startsWith(github.head_ref, 'release/')
     steps:
       - name: Check for existing Java release
