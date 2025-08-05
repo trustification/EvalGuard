@@ -68,7 +68,7 @@ jobs:
         
     - name: Build and Release Java Models
       if: ${{ github.event.inputs.release_java != 'false' }}
-        run: |
+      run: |
           echo "📦 Building and releasing Java models..."
           cd api-models/java
           # Set the release version
@@ -84,7 +84,7 @@ jobs:
         
     - name: Build and Release TypeScript Models
       if: ${{ github.event.inputs.release_typescript != 'false' }}
-        run: |
+      run: |
           echo "📦 Building and releasing TypeScript models..."
           cd api-models/typescript
           # Set the release version
