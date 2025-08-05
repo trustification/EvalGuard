@@ -1,6 +1,6 @@
 {
   "name": "@trustification/evalguard-api-model",
-  "version": "1.0.0",
+  "version": "1.0.0-SNAPSHOT",
   "description": "OpenAPI client for @trustification/evalguard-api-model",
   "author": "OpenAPI-Generator Contributors",
   "repository": {

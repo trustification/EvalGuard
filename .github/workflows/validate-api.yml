@@ -88,7 +88,7 @@ jobs:
         echo "🔨 Testing TypeScript model generation..."
         cd api-models/typescript
         npm ci --silent
-        npm run generate -- --version ${{ steps.api-version.outputs.version }}
+        npm run generate --version=${{ steps.api-version.outputs.version }}
         npm run build --silent
         echo "✅ TypeScript models generated successfully"
         
@@ -98,12 +98,12 @@ jobs:
         cd tools
         npm ci --silent
         npm run build --silent
-        node dist/index.js validate
+        node dist/index.js config validate
         echo "✅ Tools configuration validated"
         
-    - name: Test make generate (no unintended file changes)
+    - name: Test API model generation (no unintended file changes)
       run: |
-        echo "🔍 Testing make generate doesn't create/modify unintended files..."
+        echo "🔍 Testing API generation doesn't create/modify unintended files..."
         
         # Store current Git state
         echo "📸 Storing current Git state..."
@@ -115,14 +115,14 @@ jobs:
         rm -rf api-models/typescript/dist api-models/typescript/src/generated
         rm -rf api-models/java/target
         
-        # Run make validate-generate
-        echo "🔨 Running make validate-generate..."
+        # Run API model validation
+        echo "🔨 Running API model validation..."
         cd tools
-        make validate-generate version=${{ steps.api-version.outputs.version }}
+        node dist/index.js api-mgmt validate --spec-version=${{ steps.api-version.outputs.version }}
         cd ..
         
-        # The make validate-generate target handles all the validation logic
-        echo "✅ make validate-generate completed successfully"
+        # The API model validation handles all the validation logic
+        echo "✅ API model validation completed successfully"
         
     - name: Validate generated files
       run: |

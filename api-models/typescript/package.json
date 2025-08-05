@@ -1,12 +1,12 @@
 {
   "name": "@trustification/evalguard-api-model",
-  "version": "1.0.0",
+  "version": "1.0.0-SNAPSHOT",
   "description": "TypeScript API client for EvalGuard",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "generate": "openapi-generator-cli generate -i ../../schemas/${npm_config_version:-v1}/api.schema.yaml -g typescript-axios -o ./src/generated --additional-properties=supportsES6=true,npmName=@trustification/evalguard-api-model,npmVersion=1.0.0,typescriptThreePlus=true",
+    "generate": "node scripts/generate.js",
     "dev": "ts-node src/index.ts",
     "clean": "rm -rf dist src/generated",
     "prebuild": "npm run clean && npm run generate",

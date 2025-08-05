@@ -1,0 +1,107 @@
+name: Release API Models
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'API specification version to release (e.g., v1, v2)'
+        required: true
+        default: 'v1'
+      release_java:
+        description: 'Release Java models'
+        required: false
+        default: true
+        type: boolean
+      release_typescript:
+        description: 'Release TypeScript models'
+        required: false
+        default: true
+        type: boolean
+
+jobs:
+  release-models:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        registry-url: 'https://npm.pkg.github.com'
+        scope: '@trustification'
+        
+    - name: Cache Maven packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+        
+    - name: Cache npm dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+          
+    - name: Get API version
+      id: api-version
+      run: |
+        if [ "${{ github.event.inputs.version }}" != "" ]; then
+          echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+        else
+          echo "version=v1" >> $GITHUB_OUTPUT
+        fi
+        
+          - name: Build and Release Java Models
+        if: ${{ github.event.inputs.release_java != 'false' }}
+        run: |
+          echo "📦 Building and releasing Java models..."
+          cd api-models/java
+          # Set the release version
+          mvn versions:set -DnewVersion=${{ steps.api-version.outputs.version }} -DgenerateBackupPoms=false
+          mvn clean generate-sources compile -Dapi.version=${{ steps.api-version.outputs.version }}
+          mvn deploy -Dapi.version=${{ steps.api-version.outputs.version }}
+          # Reset to SNAPSHOT version
+          mvn versions:set -DnewVersion=1.0.0-SNAPSHOT -DgenerateBackupPoms=false
+          echo "✅ Java models released successfully"
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+          - name: Build and Release TypeScript Models
+        if: ${{ github.event.inputs.release_typescript != 'false' }}
+        run: |
+          echo "📦 Building and releasing TypeScript models..."
+          cd api-models/typescript
+          # Set the release version
+          npm version ${{ steps.api-version.outputs.version }} --no-git-tag-version
+          npm ci
+          npm run generate --version ${{ steps.api-version.outputs.version }}
+          npm run build
+          npm publish
+          # Reset to SNAPSHOT version
+          npm version 1.0.0-SNAPSHOT --no-git-tag-version
+          echo "✅ TypeScript models released successfully"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Summary
+      run: |
+        echo "🎉 API Models release completed!"
+        echo "Version: ${{ steps.api-version.outputs.version }}"
+        echo "Java models: ${{ github.event.inputs.release_java != 'false' && '✅ Released' || '⏭️ Skipped' }}"
+        echo "TypeScript models: ${{ github.event.inputs.release_typescript != 'false' && '✅ Released' || '⏭️ Skipped' }}" 

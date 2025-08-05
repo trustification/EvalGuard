@@ -2,9 +2,17 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
 import { glob } from 'glob';
-import { Task } from '@trustification/evalguard-api-model';
+// import { Task } from '@trustification/evalguard-api-model';
 
-// Local Metric type for generating local YAML files
+// Local types for generating local YAML files
+interface Task {
+  id: string;
+  name: string;
+  category?: string;
+  metrics?: string[];
+  tags?: string[];
+}
+
 interface Metric {
   id: string;
   name: string;
@@ -62,7 +70,8 @@ async function processReport(reportPath: string): Promise<{ tasks: Task[], metri
       }
       
       // Add metric to task
-      task.metrics.push(metricId);
+              if (!task.metrics) task.metrics = [];
+        task.metrics.push(metricId);
     }
     
     tasks.push(task);
@@ -211,12 +220,12 @@ export async function generateCommand(options: GenerateOptions): Promise<void> {
       
       if (existingTask) {
         // Check if we need to add new metrics to existing task
-        const existingMetrics = new Set(existingTask.metrics);
-        const newMetrics = task.metrics.filter((metricId: string) => !existingMetrics.has(metricId));
+        const existingMetrics = new Set(existingTask.metrics || []);
+        const newMetrics = task.metrics?.filter((metricId: string) => !existingMetrics.has(metricId)) || [];
         
         if (newMetrics.length > 0) {
           // Update existing task with new metrics
-          existingTask.metrics = [...existingTask.metrics, ...newMetrics];
+          existingTask.metrics = [...(existingTask.metrics || []), ...newMetrics];
           const taskYaml = yaml.dump(existingTask);
           fs.writeFileSync(taskFile, taskYaml);
           console.log(`🔄 Updated existing task with ${newMetrics.length} new metrics: ${taskFile}`);

@@ -1,0 +1,260 @@
+name: Stage
+
+on:
+  pull_request_target:
+    types:
+      - closed
+    branches:
+      - main
+    paths:
+      - 'api-models/**'
+      - 'schemas/**'
+      - '.github/workflows/**'
+
+jobs:
+  deploy-snapshot:
+    runs-on: ubuntu-latest
+    name: Deploy snapshot
+    if: |
+      github.repository_owner == 'trustification' && 
+      github.event.pull_request.merged == true && 
+      !startsWith(github.head_ref, 'release/')
+    outputs:
+      java_version: ${{ steps.java-version.outputs.version }}
+      typescript_version: ${{ steps.typescript-version.outputs.version }}
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@trustification'
+          cache: 'npm'
+
+      - name: Get Java project version
+        id: java-version
+        run: |
+          cd api-models/java
+          echo "version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> "$GITHUB_OUTPUT"
+
+      - name: Get TypeScript project version
+        id: typescript-version
+        run: |
+          cd api-models/typescript
+          echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy Java snapshot to GitHub
+        if: |
+          contains(steps.java-version.outputs.version, 'SNAPSHOT') && 
+          github.repository == 'trustification/evalguard'
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "📦 Deploying Java snapshot version: ${{ steps.java-version.outputs.version }}"
+          cd api-models/java
+          mvn clean generate-sources compile -Dapi.version=v1
+          mvn deploy -Dapi.version=v1 -B -ff -DskipTests=true
+
+      - name: Deploy TypeScript snapshot to GitHub
+        if: |
+          contains(steps.typescript-version.outputs.version, 'SNAPSHOT') && 
+          github.repository == 'trustification/evalguard'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "📦 Deploying TypeScript snapshot version: ${{ steps.typescript-version.outputs.version }}"
+          cd api-models/typescript
+          npm ci
+          npm run generate --version v1
+          npm run build
+          npm publish
+
+  release-snapshot:
+    runs-on: ubuntu-latest
+    name: Release snapshot
+    environment: staging
+    needs: deploy-snapshot
+    if: |
+      (contains(needs.deploy-snapshot.outputs.java_version, 'SNAPSHOT') || 
+       contains(needs.deploy-snapshot.outputs.typescript_version, 'SNAPSHOT')) &&
+      github.repository_owner == 'trustification' && 
+      github.event.pull_request.merged == true && 
+      !startsWith(github.head_ref, 'release/')
+    steps:
+      - name: Check for existing Java release
+        id: existing-java-release
+        uses: actions/github-script@v7
+        env:
+          PROJECT_VERSION: ${{ needs.deploy-snapshot.outputs.java_version }}
+        continue-on-error: true
+        with:
+          github-token: ${{ secrets.STAGING_PAT }}
+          script: |
+            const repo = context.repo;
+            const tag = process.env.PROJECT_VERSION;
+            try {
+              const response = await github.rest.repos.getReleaseByTag({
+                owner: repo.owner,
+                repo: repo.repo,
+                tag: tag
+              });
+              core.setOutput('id', response.data.id);
+            } catch (error) {
+              if (error.status === 404) {
+                core.info(`Release for tag '${tag}' not found.`);
+              } else {
+                throw error;
+              }
+            }
+
+      - name: Check for existing TypeScript release
+        id: existing-typescript-release
+        uses: actions/github-script@v7
+        env:
+          PROJECT_VERSION: ${{ needs.deploy-snapshot.outputs.typescript_version }}
+        continue-on-error: true
+        with:
+          github-token: ${{ secrets.STAGING_PAT }}
+          script: |
+            const repo = context.repo;
+            const tag = process.env.PROJECT_VERSION;
+            try {
+              const response = await github.rest.repos.getReleaseByTag({
+                owner: repo.owner,
+                repo: repo.repo,
+                tag: tag
+              });
+              core.setOutput('id', response.data.id);
+            } catch (error) {
+              if (error.status === 404) {
+                core.info(`Release for tag '${tag}' not found.`);
+              } else {
+                throw error;
+              }
+            }
+
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Delete existing Java release if exists
+        if: ${{ steps.existing-java-release.outputs.id }}
+        uses: actions/github-script@v6
+        env:
+          RELEASE_ID: ${{ steps.existing-java-release.outputs.id }}
+        with:
+          github-token: ${{ secrets.STAGING_PAT }}
+          script: |
+            const repo = context.repo;
+            const releaseId = process.env.RELEASE_ID;
+            try {
+              console.log(`Deleting Java release ID: ${releaseId}`);
+              await github.rest.repos.deleteRelease({
+                owner: repo.owner,
+                repo: repo.repo,
+                release_id: releaseId
+              });
+              console.log(`Deleted Java release ID: ${releaseId}`);
+            } catch (error) {
+              if (error.status === 404) {
+                console.log(`Release ID: ${releaseId} not found. Skipping deletion.`);
+              } else {
+                throw error;
+              }
+            }
+
+      - name: Delete existing TypeScript release if exists
+        if: ${{ steps.existing-typescript-release.outputs.id }}
+        uses: actions/github-script@v6
+        env:
+          RELEASE_ID: ${{ steps.existing-typescript-release.outputs.id }}
+        with:
+          github-token: ${{ secrets.STAGING_PAT }}
+          script: |
+            const repo = context.repo;
+            const releaseId = process.env.RELEASE_ID;
+            try {
+              console.log(`Deleting TypeScript release ID: ${releaseId}`);
+              await github.rest.repos.deleteRelease({
+                owner: repo.owner,
+                repo: repo.repo,
+                release_id: releaseId
+              });
+              console.log(`Deleted TypeScript release ID: ${releaseId}`);
+            } catch (error) {
+              if (error.status === 404) {
+                console.log(`Release ID: ${releaseId} not found. Skipping deletion.`);
+              } else {
+                throw error;
+              }
+            }
+
+      - name: Delete Java tag if exists
+        if: contains(needs.deploy-snapshot.outputs.java_version, 'SNAPSHOT')
+        continue-on-error: true
+        run: git push --delete origin ${{ needs.deploy-snapshot.outputs.java_version }}
+
+      - name: Delete TypeScript tag if exists
+        if: contains(needs.deploy-snapshot.outputs.typescript_version, 'SNAPSHOT')
+        continue-on-error: true
+        run: git push --delete origin ${{ needs.deploy-snapshot.outputs.typescript_version }}
+
+      # Workaround for GitHub release cache issue — avoids ghost "draft" releases
+      - name: Sleep to allow release deletion to propagate
+        run: sleep 5
+
+      - name: Create new Java release
+        if: contains(needs.deploy-snapshot.outputs.java_version, 'SNAPSHOT')
+        uses: actions/github-script@v7
+        env:
+          PROJECT_VERSION: ${{ needs.deploy-snapshot.outputs.java_version }}
+        with:
+          github-token: ${{ secrets.STAGING_PAT }}
+          script: |
+            const repo = context.repo;
+            const tag = process.env.PROJECT_VERSION;
+            console.log(`Creating Java release for tag: ${tag}`);
+            const response = await github.rest.repos.createRelease({
+              owner: repo.owner,
+              repo: repo.repo,
+              tag_name: tag,
+              name: `Java API Models - ${tag}`,
+              draft: false,
+              prerelease: true,
+              generate_release_notes: true,
+              make_latest: 'false',
+            });
+            console.log(`Java release created: ${response.data.html_url}`);
+
+      - name: Create new TypeScript release
+        if: contains(needs.deploy-snapshot.outputs.typescript_version, 'SNAPSHOT')
+        uses: actions/github-script@v7
+        env:
+          PROJECT_VERSION: ${{ needs.deploy-snapshot.outputs.typescript_version }}
+        with:
+          github-token: ${{ secrets.STAGING_PAT }}
+          script: |
+            const repo = context.repo;
+            const tag = process.env.PROJECT_VERSION;
+            console.log(`Creating TypeScript release for tag: ${tag}`);
+            const response = await github.rest.repos.createRelease({
+              owner: repo.owner,
+              repo: repo.repo,
+              tag_name: tag,
+              name: `TypeScript API Models - ${tag}`,
+              draft: false,
+              prerelease: true,
+              generate_release_notes: true,
+              make_latest: 'false',
+            });
+            console.log(`TypeScript release created: ${response.data.html_url}`); 
