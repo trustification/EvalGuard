@@ -17,29 +17,29 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Set up JDK 21
       uses: actions/setup-java@v4
       with:
         java-version: '21'
         distribution: 'temurin'
-        
+
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '20'
-        
+
     - name: Cache Maven packages
       uses: actions/cache@v4
       with:
         path: ~/.m2
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2
-        
+
     - name: Cache npm dependencies
       uses: actions/cache@v4
       with:
@@ -47,7 +47,7 @@ jobs:
         key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
         restore-keys: |
           ${{ runner.os }}-node-
-          
+
     - name: Get API version
       id: api-version
       run: |
@@ -56,7 +56,7 @@ jobs:
         else
           echo "version=v1" >> $GITHUB_OUTPUT
         fi
-        
+
     - name: Check Git repository state
       run: |
         echo "🔍 Checking Git repository state..."
@@ -82,7 +82,7 @@ jobs:
         cd api-models/java
         mvn clean generate-sources compile -Dapi.version=${{ steps.api-version.outputs.version }} -q
         echo "✅ Java models generated successfully"
-        
+
     - name: Test TypeScript model generation
       run: |
         echo "🔨 Testing TypeScript model generation..."
@@ -91,7 +91,7 @@ jobs:
         npm run generate --version=${{ steps.api-version.outputs.version }}
         npm run build --silent
         echo "✅ TypeScript models generated successfully"
-        
+
     - name: Validate tools configuration
       run: |
         echo "🔍 Validating tools configuration..."
@@ -100,35 +100,35 @@ jobs:
         npm run build --silent
         node dist/index.js config validate --root ../
         echo "✅ Tools configuration validated"
-        
+
     - name: Test API model generation (no unintended file changes)
       run: |
         echo "🔍 Testing API generation doesn't create/modify unintended files..."
-        
+
         # Store current Git state
         echo "📸 Storing current Git state..."
         git status --porcelain > /tmp/before_generate.txt
         git diff --name-only > /tmp/before_generate_diff.txt
-        
+
         # Clean generated files to start fresh
         echo "🧹 Cleaning previously generated files..."
         cd tools
         node dist/index.js api clean --type both
         cd ..
-        
+
         # Run API model validation
         echo "🔨 Running API model validation..."
         cd tools
         node dist/index.js api validate --spec-version=${{ steps.api-version.outputs.version }}
         cd ..
-        
+
         # The API model validation handles all the validation logic
         echo "✅ API model validation completed successfully"
-        
+
     - name: Validate generated files
       run: |
         echo "🔍 Validating generated files..."
-        
+
         # Check Java generated files
         if [ -d "api-models/java/target/generated-sources/openapi" ]; then
           echo "✅ Java models generated in target/generated-sources/openapi"
@@ -137,7 +137,7 @@ jobs:
           echo "❌ Java models not generated"
           exit 1
         fi
-        
+
         # Check TypeScript generated files
         if [ -d "api-models/typescript/src/generated" ]; then
           echo "✅ TypeScript models generated in src/generated"
@@ -146,9 +146,9 @@ jobs:
           echo "❌ TypeScript models not generated"
           exit 1
         fi
-        
+
         echo "✅ All generated files validated"
-        
+
     - name: Summary
       run: |
         echo "🎉 API Models validation completed successfully!"
