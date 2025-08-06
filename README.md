@@ -15,18 +15,20 @@ EvalGuard is **tool-agnostic** but compatible with evaluation outputs from syste
 
 EvalGuard provides:
 
-- **Schemas** for evaluation reports, tasks, and metrics
+- **Schemas** for evaluation reports, tasks, metrics, and guardrails
 - **Configuration files** for:
   - Task descriptions and categories
   - Metric types and interpretations
   - Thresholds for performance levels
+  - Guardrails for operational constraints and policies
   - Tags for capabilities, risk types, and domains
 - **Annotated evaluation reports** (e.g., in JSON/YAML format)
 
 This enables:
 - Consistent comparison across evaluations
 - Configurable guidance on model strengths and limitations
-- Future integration with guardrails and policy frameworks
+- Operational guardrails and policy frameworks
+- Risk mitigation and quality enforcement
 
 ---
 
@@ -52,7 +54,8 @@ evalguard/
 ├── config/            # Configuration files for interpretation
 │   ├── tasks/         # Task definitions and metadata
 │   ├── metrics/       # Metric definitions and types
-│   └── thresholds/    # Performance thresholds
+│   ├── thresholds/    # Performance thresholds
+│   └── guardrails/    # Operational guardrails and policies
 ├── reports/           # Community-contributed model evaluation reports
 │   └── lm-eval/       # lm-evaluation-harness reports
 ├── tools/             # CLI tool for schema management
@@ -73,6 +76,32 @@ EvalGuard provides a CLI tool for schema validation and data generation. The too
 
 The tool implements the requirements defined in the [EvalGuard Schema Specification](SPECIFICATION.md):
 
+## Guardrails
+
+EvalGuard includes a guardrails system for defining operational constraints and policies that should be applied during model evaluation or deployment. Guardrails help mitigate risks, enforce quality standards, and guide model behavior.
+
+### Guardrail Features
+
+- **Targeted Application**: Guardrails can target specific tasks, metrics, and models
+- **Flexible Scope**: Apply to input processing, output generation, or both
+- **Metadata Support**: Include external references and implementation guidance
+- **Cross-Reference Validation**: Ensure guardrails reference valid tasks and metrics
+
+### Example Guardrail Configuration
+
+```yaml
+id: truthfulness-check
+name: Truthfulness Verification
+description: Ensures model responses are truthful and avoid hallucination
+targets:
+  - task: truthfulqa_mc1
+    metrics: [acc, acc_norm]
+scope: output
+instructions: Verify that model responses are factually accurate
+external_references:
+  - https://arxiv.org/abs/2209.07958
+```
+
 ## API Specification
 
 EvalGuard defines a REST API specification for accessing evaluation reports. The API is defined in the [OpenAPI Specification](schemas/v1/api.schema.yaml) and supports:
@@ -82,6 +111,7 @@ EvalGuard defines a REST API specification for accessing evaluation reports. The
 - **Task Information**: Access task definitions and metadata
 - **Metrics Access**: Retrieve performance metrics for specific reports
 - **Threshold Access**: Get performance thresholds for interpreting metric results
+- **Guardrails Access**: Retrieve operational guardrails and policies
 
 > **Note**: This is a **specification only**. The API is not implemented in this repository. Anyone interested in providing EvalGuard API services can implement this specification.
 
@@ -102,6 +132,12 @@ curl "https://api.evalguard.org/v1/thresholds?tasks=truthfulqa_mc1,winogender_sc
 
 # List available models
 curl "https://api.evalguard.org/v1/models"
+
+# List guardrails with filtering
+curl "https://api.evalguard.org/v1/guardrails?tasks=truthfulqa_mc1&metrics=acc"
+
+# Get specific guardrail
+curl "https://api.evalguard.org/v1/guardrails/truthfulness-check"
 ```
 
 ### Installation
@@ -125,6 +161,7 @@ evalguard config validate
 evalguard config validate -t tasks
 evalguard config validate -t metrics
 evalguard config validate -t thresholds
+evalguard config validate -t guardrails
 
 # Validate from a different root directory
 evalguard config validate --root /path/to/evalguard

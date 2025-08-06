@@ -51,12 +51,14 @@ All URIs are relative to *https://api.evalguard.org/v1*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
-*DefaultApi* | [**getReport**](docs/DefaultApi.md#getreport) | **GET** /reports/{report_id} | Get evaluation report by ID
-*DefaultApi* | [**getReportMetrics**](docs/DefaultApi.md#getreportmetrics) | **GET** /reports/{report_id}/metrics | Get metrics for a specific report
-*DefaultApi* | [**getThresholds**](docs/DefaultApi.md#getthresholds) | **GET** /thresholds | Get thresholds for multiple tasks and metrics
-*DefaultApi* | [**listModels**](docs/DefaultApi.md#listmodels) | **GET** /models | List available models
-*DefaultApi* | [**listReports**](docs/DefaultApi.md#listreports) | **GET** /reports | List evaluation reports
-*DefaultApi* | [**listTasks**](docs/DefaultApi.md#listtasks) | **GET** /tasks | List available tasks
+*GuardrailsApi* | [**getGuardrail**](docs/GuardrailsApi.md#getguardrail) | **GET** /guardrails/{guardrail_id} | Get guardrail by ID
+*GuardrailsApi* | [**listGuardrails**](docs/GuardrailsApi.md#listguardrails) | **GET** /guardrails | List guardrails
+*ModelsApi* | [**listModels**](docs/ModelsApi.md#listmodels) | **GET** /models | List available models
+*ReportsApi* | [**getReport**](docs/ReportsApi.md#getreport) | **GET** /reports/{report_id} | Get evaluation report by ID
+*ReportsApi* | [**getReportMetrics**](docs/ReportsApi.md#getreportmetrics) | **GET** /reports/{report_id}/metrics | Get metrics for a specific report
+*ReportsApi* | [**listReports**](docs/ReportsApi.md#listreports) | **POST** /reports | List evaluation reports
+*TasksApi* | [**listTasks**](docs/TasksApi.md#listtasks) | **GET** /tasks | List available tasks
+*ThresholdsApi* | [**getThresholds**](docs/ThresholdsApi.md#getthresholds) | **GET** /thresholds | Get thresholds for multiple tasks and metrics
 
 
 ### Documentation For Models
@@ -65,6 +67,10 @@ Class | Method | HTTP request | Description
  - [GetReportMetrics200Response](docs/GetReportMetrics200Response.md)
  - [GetReportMetrics200ResponseMetricsInnerValue](docs/GetReportMetrics200ResponseMetricsInnerValue.md)
  - [GetThresholds200Response](docs/GetThresholds200Response.md)
+ - [Guardrail](docs/Guardrail.md)
+ - [GuardrailTargetsInner](docs/GuardrailTargetsInner.md)
+ - [Guardrailschema](docs/Guardrailschema.md)
+ - [ListGuardrails200Response](docs/ListGuardrails200Response.md)
  - [ListModels200Response](docs/ListModels200Response.md)
  - [ListTasks200Response](docs/ListTasks200Response.md)
  - [ModelError](docs/ModelError.md)
@@ -80,8 +86,9 @@ Class | Method | HTTP request | Description
  - [ReportContextToolsTransformers](docs/ReportContextToolsTransformers.md)
  - [ReportList](docs/ReportList.md)
  - [ReportListschema](docs/ReportListschema.md)
- - [ReportTasksInner](docs/ReportTasksInner.md)
- - [ReportTasksInnerNSamples](docs/ReportTasksInnerNSamples.md)
+ - [ReportQuery](docs/ReportQuery.md)
+ - [ReportQueryQuery](docs/ReportQueryQuery.md)
+ - [ReportQueryschema](docs/ReportQueryschema.md)
  - [Reportschema](docs/Reportschema.md)
  - [Task](docs/Task.md)
  - [Taskschema](docs/Taskschema.md)

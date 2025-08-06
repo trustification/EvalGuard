@@ -19,86 +19,57 @@ import java.util.StringJoiner;
 import java.util.Objects;
 import java.util.Map;
 import java.util.HashMap;
+import com.evalguard.model.ReportQueryQuery;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.JsonValue;
-import java.math.BigDecimal;
 import java.util.Arrays;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 
 /**
- * Number of samples in the task.
+ * Query parameters for filtering evaluation reports with flexible criteria including model information, tasks and metrics. 
  */
 @JsonPropertyOrder({
-  ReportTasksInnerNSamples.JSON_PROPERTY_ORIGINAL,
-  ReportTasksInnerNSamples.JSON_PROPERTY_EFFECTIVE
+  ReportQuery.JSON_PROPERTY_QUERY
 })
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen")
-public class ReportTasksInnerNSamples {
-  public static final String JSON_PROPERTY_ORIGINAL = "original";
-  private BigDecimal original;
+public class ReportQuery {
+  public static final String JSON_PROPERTY_QUERY = "query";
+  private ReportQueryQuery query;
 
-  public static final String JSON_PROPERTY_EFFECTIVE = "effective";
-  private BigDecimal effective;
-
-  public ReportTasksInnerNSamples() { 
+  public ReportQuery() { 
   }
 
-  public ReportTasksInnerNSamples original(BigDecimal original) {
-    this.original = original;
+  public ReportQuery query(ReportQueryQuery query) {
+    this.query = query;
     return this;
   }
 
    /**
-   * Number of original samples.
-   * @return original
+   * Get query
+   * @return query
   **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_ORIGINAL)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  @javax.annotation.Nonnull
+  @JsonProperty(JSON_PROPERTY_QUERY)
+  @JsonInclude(value = JsonInclude.Include.ALWAYS)
 
-  public BigDecimal getOriginal() {
-    return original;
+  public ReportQueryQuery getQuery() {
+    return query;
   }
 
 
-  @JsonProperty(JSON_PROPERTY_ORIGINAL)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setOriginal(BigDecimal original) {
-    this.original = original;
-  }
-
-
-  public ReportTasksInnerNSamples effective(BigDecimal effective) {
-    this.effective = effective;
-    return this;
-  }
-
-   /**
-   * Number of effective samples.
-   * @return effective
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_EFFECTIVE)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public BigDecimal getEffective() {
-    return effective;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_EFFECTIVE)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setEffective(BigDecimal effective) {
-    this.effective = effective;
+  @JsonProperty(JSON_PROPERTY_QUERY)
+  @JsonInclude(value = JsonInclude.Include.ALWAYS)
+  public void setQuery(ReportQueryQuery query) {
+    this.query = query;
   }
 
 
   /**
-   * Return true if this Report_tasks_inner_n_samples object is equal to o.
+   * Return true if this ReportQuery object is equal to o.
    */
   @Override
   public boolean equals(Object o) {
@@ -108,22 +79,20 @@ public class ReportTasksInnerNSamples {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    ReportTasksInnerNSamples reportTasksInnerNSamples = (ReportTasksInnerNSamples) o;
-    return Objects.equals(this.original, reportTasksInnerNSamples.original) &&
-        Objects.equals(this.effective, reportTasksInnerNSamples.effective);
+    ReportQuery reportQuery = (ReportQuery) o;
+    return Objects.equals(this.query, reportQuery.query);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(original, effective);
+    return Objects.hash(query);
   }
 
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("class ReportTasksInnerNSamples {\n");
-    sb.append("    original: ").append(toIndentedString(original)).append("\n");
-    sb.append("    effective: ").append(toIndentedString(effective)).append("\n");
+    sb.append("class ReportQuery {\n");
+    sb.append("    query: ").append(toIndentedString(query)).append("\n");
     sb.append("}");
     return sb.toString();
   }
@@ -171,14 +140,9 @@ public class ReportTasksInnerNSamples {
 
     StringJoiner joiner = new StringJoiner("&");
 
-    // add `original` to the URL query string
-    if (getOriginal() != null) {
-      joiner.add(String.format("%soriginal%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getOriginal()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
-    }
-
-    // add `effective` to the URL query string
-    if (getEffective() != null) {
-      joiner.add(String.format("%seffective%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getEffective()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    // add `query` to the URL query string
+    if (getQuery() != null) {
+      joiner.add(getQuery().toUrlQueryString(prefix + "query" + suffix));
     }
 
     return joiner.toString();

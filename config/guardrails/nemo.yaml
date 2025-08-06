@@ -1,0 +1,61 @@
+id: nemo
+name: Nemo
+description: Nemo is a guardrail that ensures that the model's responses are truthful and avoid hallucination.
+scope: both
+targets:
+  - task: bbq
+    metrics:
+     - amb_bias_score_Age
+     - disamb_bias_score_Age
+     - amb_bias_score_Gender_identity
+     - disamb_bias_score_Gender_identity
+     - amb_bias_score_Race_ethnicity
+     - disamb_bias_score_Race_ethnicity
+  - task: crows_pairs_english
+    metrics:
+      - pct_stereotype
+  - task: toxigen
+    metrics:
+      - acc
+      - acc_norm
+  - task: ethics_cm
+    metrics:
+      - acc
+      - acc_norm
+  - task: winogender_all
+    metrics:
+      - acc
+      - acc_norm
+external_references:
+  - https://docs.nvidia.com/nemo/guardrails/latest/index.html
+instructions: |
+  ## Installation
+  ```bash
+  pip install nemoguardrails
+  ```
+
+  ## Basic Usage
+  ```python
+  from nemoguardrails import LLMRails, RailsConfig
+
+  # Load configuration
+  config = RailsConfig.from_path("path/to/config")
+  app = LLMRails(config)
+
+  # Apply guardrails
+  response = app.generate(messages=[{
+      "role": "user", 
+      "content": "Your input message"
+  }])
+  ```
+
+  ## Configuration Parameters
+  - **knowledge_base**: Knowledge base for fact-checking
+  - **rag_documents**: RAG documents for context validation
+
+  ## Integration Pattern
+  ```python
+  # Pre-processing: Apply input guardrails before sending to LLM
+  # Post-processing: Apply output guardrails after receiving LLM response
+  # Monitoring: Log guardrail violations for analysis and improvement
+  ```

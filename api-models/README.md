@@ -24,7 +24,7 @@ The models are automatically published to GitHub Packages when:
 
 1. **Push to main branch** with changes to:
    - `api-models/**` files
-   - `schemas/**` files
+   - `schemas/**` files (including guardrails schemas)
    - Workflow files
 
 2. **Manual trigger** via GitHub Actions with custom API version
@@ -66,6 +66,7 @@ The project includes automatic validation that runs on every PR and push to main
 - **Configuration validation**: Checks that all required files exist and are valid
 - **Model generation**: Tests that both Java and TypeScript models can be generated
 - **Tools validation**: Validates the tools configuration using the existing validate command
+- **Guardrails validation**: Validates guardrail configurations and cross-references
 - **make generate validation**: Ensures `make generate` doesn't create unintended files or modify configuration files
 - **Generated files validation**: Ensures that the generation process produces the expected files
 

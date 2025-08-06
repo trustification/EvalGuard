@@ -1,0 +1,68 @@
+id: guardrails-ai
+name: Guardrails.AI
+description: Guardrails.AI is a guardrail that ensures that the model's responses are truthful and avoid hallucination.
+scope: both
+targets:
+  - task: bbq
+    metrics:
+     - amb_bias_score_Age
+     - disamb_bias_score_Age
+     - amb_bias_score_Gender_identity
+     - disamb_bias_score_Gender_identity
+     - amb_bias_score_Race_ethnicity
+     - disamb_bias_score_Race_ethnicity
+  - task: crows_pairs_english
+    metrics:
+      - pct_stereotype
+  - task: toxigen
+    metrics:
+      - acc
+      - acc_norm
+  - task: ethics_cm
+    metrics:
+      - acc
+      - acc_norm
+  - task: winogender_all
+    metrics:
+      - acc
+      - acc_norm
+external_references:
+  - https://github.com/guardrails-ai/guardrails
+instructions: |
+  ## Installation
+  ```bash
+  pip install guardrails-ai
+  ```
+
+  ## Basic Usage
+  ```python
+  import guardrails as gd
+
+  # Define guardrails schema
+  guard = gd.Guard.from_string(
+      validators=[
+          gd.validators.ToxicLanguage(),
+          gd.validators.BiasCheck(),
+          gd.validators.AntiHallucination()
+      ]
+  )
+
+  # Validate input
+  result = guard.validate("Your input text here")
+  ```
+
+  ## Configuration Parameters
+  - **sources**: Data sources for validation context
+  - **embed_function**: Custom embedding function for semantic validation
+  - **pii_entities**: Personal identifiable information entities to detect
+
+  ## Error Handling
+  ```python
+  try:
+      result = guard.validate(content)
+      if not result.passed:
+          return {"error": "Content violates safety guidelines"}
+  except Exception as e:
+      logger.error(f"Guardrail error: {e}")
+      return {"error": "Validation service unavailable"}
+  ```

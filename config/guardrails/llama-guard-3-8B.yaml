@@ -1,0 +1,63 @@
+id: llama-guard-3-8B
+name: Llama Guard 3.8B
+description: Advanced safety classifier (8 B params) for both input/output moderation, multilingual (8 languages).
+scope: both
+targets:
+  - task: bbq
+    metrics:
+     - amb_bias_score_Age
+     - disamb_bias_score_Age
+     - amb_bias_score_Gender_identity
+     - disamb_bias_score_Gender_identity
+     - amb_bias_score_Race_ethnicity
+     - disamb_bias_score_Race_ethnicity
+  - task: crows_pairs_english
+    metrics:
+      - pct_stereotype
+  - task: toxigen
+    metrics:
+      - acc
+      - acc_norm
+  - task: ethics_cm
+    metrics:
+      - acc
+      - acc_norm
+  - task: winogender_all
+    metrics:
+      - acc
+      - acc_norm
+external_references:
+  - https://huggingface.co/meta-llama/Llama-Guard-3-8B
+instructions: |
+  ## Installation
+  ```bash
+  pip install transformers torch
+  ```
+
+  ## Basic Usage
+  ```python
+  from transformers import AutoTokenizer, AutoModelForCausalLM
+  import torch
+
+  # Load model and tokenizer
+  model_id = "meta-llama/Llama-Guard-3-8B"
+  tokenizer = AutoTokenizer.from_pretrained(model_id)
+  model = AutoModelForCausalLM.from_pretrained(model_id, torch_dtype=torch.bfloat16)
+
+  # Classify content
+  def classify_content(text):
+      inputs = tokenizer(text, return_tensors="pt")
+      with torch.no_grad():
+          outputs = model.generate(**inputs, max_new_tokens=100)
+      return tokenizer.decode(outputs[0], skip_special_tokens=True)
+  ```
+
+  ## Configuration Parameters
+  - **model_variant**: Model variant selection (base, instruct, etc.)
+  - **quantized**: Enable quantization for reduced memory usage
+  - **languages_supported**: Configure supported languages for multilingual use
+
+  ## Performance Considerations
+  - Cache guardrail models to avoid repeated loading
+  - Consider async processing for multiple validations
+  - Implement timeout mechanisms for guardrail execution

@@ -53,6 +53,13 @@ The CLI tool depends on TypeScript models generated from the EvalGuard schemas. 
 
 ## Usage
 
+The CLI tool supports validation of all EvalGuard configuration types:
+
+- **Tasks**: Validate task definitions and metadata
+- **Metrics**: Validate metric definitions and types  
+- **Thresholds**: Validate performance thresholds
+- **Guardrails**: Validate operational guardrails and policies
+
 For detailed usage instructions, see the [main README](../README.md) in the project root.
 
 ## Project Structure

@@ -13,45 +13,37 @@
 
 package com.evalguard.model;
 
+import com.evalguard.model.ReportQueryQuery;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.JsonValue;
-import java.math.BigDecimal;
 import java.util.Arrays;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
 /**
- * Model tests for ReportTasksInnerNSamples
+ * Model tests for ReportQuery
  */
-public class ReportTasksInnerNSamplesTest {
-    private final ReportTasksInnerNSamples model = new ReportTasksInnerNSamples();
+public class ReportQueryTest {
+    private final ReportQuery model = new ReportQuery();
 
     /**
-     * Model tests for ReportTasksInnerNSamples
+     * Model tests for ReportQuery
      */
     @Test
-    public void testReportTasksInnerNSamples() {
-        // TODO: test ReportTasksInnerNSamples
+    public void testReportQuery() {
+        // TODO: test ReportQuery
     }
 
     /**
-     * Test the property 'original'
+     * Test the property 'query'
      */
     @Test
-    public void originalTest() {
-        // TODO: test original
-    }
-
-    /**
-     * Test the property 'effective'
-     */
-    @Test
-    public void effectiveTest() {
-        // TODO: test effective
+    public void queryTest() {
+        // TODO: test query
     }
 
 }

@@ -11,6 +11,7 @@ interface ValidationContext {
   allTasks: Set<string>;
   taskMetrics: Map<string, Set<string>>; // task ID -> set of metric IDs
   thresholdTasks: Set<string>; // track unique task IDs in thresholds
+  guardrailIds: Set<string>; // track unique guardrail IDs
   validators: any;
 }
 
@@ -41,14 +42,16 @@ export async function validateCommand(options: ValidateOptions): Promise<void> {
     const schemas = {
       tasks: loadVersionedSchema(schemasDir, 'task'),
       metrics: loadVersionedSchema(schemasDir, 'metric'),
-      thresholds: loadVersionedSchema(schemasDir, 'threshold')
+      thresholds: loadVersionedSchema(schemasDir, 'threshold'),
+      guardrails: loadVersionedSchema(schemasDir, 'guardrail')
     };
     
     // Compile validators
     const validators = {
       tasks: ajv.compile(schemas.tasks),
       metrics: ajv.compile(schemas.metrics),
-      thresholds: ajv.compile(schemas.thresholds)
+      thresholds: ajv.compile(schemas.thresholds),
+      guardrails: ajv.compile(schemas.guardrails)
     };
     
     const context: ValidationContext = {
@@ -56,6 +59,7 @@ export async function validateCommand(options: ValidateOptions): Promise<void> {
       allTasks: new Set<string>(),
       taskMetrics: new Map<string, Set<string>>(),
       thresholdTasks: new Set<string>(),
+      guardrailIds: new Set<string>(),
       validators
     };
     
@@ -91,8 +95,8 @@ async function validateSingleFile(filePath: string, context: ValidationContext):
 
 async function validateSpecificType(type: string, configDir: string, context: ValidationContext): Promise<ValidationResult[]> {
   const normalizedType = type.toLowerCase();
-  if (!['metrics', 'tasks', 'thresholds'].includes(normalizedType)) {
-    console.error(`❌ Invalid type: ${type}. Must be one of: metrics, tasks, thresholds`);
+  if (!['metrics', 'tasks', 'thresholds', 'guardrails'].includes(normalizedType)) {
+    console.error(`❌ Invalid type: ${type}. Must be one of: metrics, tasks, thresholds, guardrails`);
     process.exit(1);
   }
   
@@ -160,7 +164,7 @@ async function collectMetricsAndTasks(configDir: string, context: ValidationCont
 }
 
 async function validateTasksAndThresholds(configDir: string, context: ValidationContext, results: ValidationResult[]): Promise<void> {
-  for (const type of ['tasks', 'thresholds'] as const) {
+  for (const type of ['tasks', 'thresholds', 'guardrails'] as const) {
     const typeDir = path.join(configDir, type);
     if (!fs.existsSync(typeDir)) {
       console.warn(`⚠️  Directory not found: ${typeDir}`);
@@ -187,6 +191,8 @@ function validateCrossReferences(result: ValidationResult, type: string, context
     validateTaskReferences(result, context);
   } else if (type === 'thresholds') {
     validateThresholdReferences(result, context);
+  } else if (type === 'guardrails') {
+    validateGuardrailReferences(result, context);
   }
 }
 
@@ -227,6 +233,59 @@ function validateThresholdReferences(result: ValidationResult, context: Validati
     if (!context.allMetrics.has(metricId)) {
       result.valid = false;
       result.errors.push(`Threshold references non-existent metric: '${metricId}'`);
+    }
+  }
+}
+
+function validateGuardrailReferences(result: ValidationResult, context: ValidationContext): void {
+  // Validate that guardrail ID is unique
+  const guardrailId = result.data.id;
+  if (guardrailId && context.guardrailIds.has(guardrailId)) {
+    result.valid = false;
+    result.errors.push(`Duplicate guardrail ID: '${guardrailId}'`);
+    return;
+  }
+  
+  // Add guardrail ID to set for future duplicate checking
+  if (guardrailId) {
+    context.guardrailIds.add(guardrailId);
+  }
+  
+  // Validate targets structure and references
+  const targets = result.data.targets || [];
+  if (!Array.isArray(targets) || targets.length === 0) {
+    result.valid = false;
+    result.errors.push('Guardrail must have at least one target');
+    return;
+  }
+  
+  for (const target of targets) {
+    // Validate task reference
+    const taskId = target.task;
+    if (!taskId) {
+      result.valid = false;
+      result.errors.push('Guardrail target must specify a task');
+      continue;
+    }
+    
+    if (!context.allTasks.has(taskId)) {
+      result.valid = false;
+      result.errors.push(`Guardrail references non-existent task: '${taskId}'`);
+    }
+    
+    // Validate metrics references
+    const metrics = target.metrics || [];
+    if (!Array.isArray(metrics) || metrics.length === 0) {
+      result.valid = false;
+      result.errors.push(`Guardrail target for task '${taskId}' must specify at least one metric`);
+      continue;
+    }
+    
+    for (const metricId of metrics) {
+      if (!context.allMetrics.has(metricId)) {
+        result.valid = false;
+        result.errors.push(`Guardrail references non-existent metric: '${metricId}' for task '${taskId}'`);
+      }
     }
   }
 }
@@ -275,7 +334,9 @@ function loadVersionedSchema(schemasDir: string, schemaName: string): any {
           return JSON.parse(content);
         }
       } catch (error) {
-        console.warn(`⚠️  Could not parse schema ${schemaPath}, trying next option`);
+        console.error(`❌ Could not parse schema ${schemaPath}: ${(error as Error).message}`);
+        console.error(`Error details: ${error}`);
+        throw error;
       }
     } else {
       console.log(`❌ Not found: ${schemaPath}`);
@@ -337,6 +398,9 @@ async function validateFile(filePath: string, validators: any, expectedType?: st
     } else if (fileName.includes('threshold')) {
       type = 'thresholds';
       validator = validators.thresholds;
+    } else if (fileName.includes('guardrail')) {
+      type = 'guardrails';
+      validator = validators.guardrails;
     } else {
       // Try all validators
       for (const [t, v] of Object.entries(validators)) {

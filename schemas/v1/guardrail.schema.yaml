@@ -1,0 +1,71 @@
+$schema: http://json-schema.org/draft/2020-12/schema
+$id: https://github.com/evalguard/evalguard/schemas/v1/guardrail.schema.yaml
+title: Guardrail
+description: >
+  A guardrail is a policy or operational constraint that should be applied during 
+  model evaluation or deployment to mitigate risks, enforce quality, or guide behavior. 
+  It can target specific tasks, metrics, or models and is annotated with metadata for 
+  interpretation and traceability.
+type: object
+properties:
+  id:
+    type: string
+    description: Globally unique identifier for the guardrail.
+  name:
+    type: string
+    description: Human-readable name of the guardrail.
+  description:
+    type: string
+    description: Detailed explanation of the purpose and logic of the guardrail.
+  targets:
+    type: array
+    description: >
+      Specifies what the guardrail applies to: tasks, metrics, and/or specific models.
+    items:
+      type: object
+      required:
+        - task
+        - metrics
+      properties:
+        task:
+          type: string
+          description: Task identifier to which the guardrail applies.
+        metrics:
+          type: array
+          description: List of metric identifiers to which the guardrail applies
+          items:
+            type: string
+          minItems: 1
+        model:
+          type: string
+          description: Model identifier this guardrail is scoped to (Optional)
+      additionalProperties: false
+  scope:
+    type: string
+    description: >
+      Indicates the data flow stage at which the guardrail should be applied:
+      'input' for prompt/input constraints, 'output' for generation constraints, 
+      or 'both' for end-to-end application.
+    enum:
+      - input
+      - output
+      - both
+  external_references:
+    type: array
+    description: >
+      List of external references (e.g., papers, documentation, implementations) 
+      that support or explain the rationale for this guardrail.
+    items:
+      type: string
+  instructions:
+    type: string
+    description: >
+      Implementation guidance or rule description, written in natural language or 
+      pseudocode for how to enforce this guardrail.
+required:
+  - id
+  - name
+  - targets
+  - scope
+  - instructions
+additionalProperties: false 

@@ -1,0 +1,44 @@
+id: detoxify
+name: Detoxify
+description: "Transformer‑based output toxicity detection: insults, identity hate, severe toxicity."
+scope: output
+targets:
+  - task: toxigen
+    metrics:
+      - acc
+      - acc_norm
+external_references:
+  - https://github.com/unitaryai/detoxify
+instructions: |
+  ## Installation
+  ```bash
+  pip install detoxify
+  ```
+
+  ## Basic Usage
+  ```python
+  from detoxify import Detoxify
+
+  # Initialize detector
+  detector = Detoxify(''original'')
+
+  # Detect toxicity
+  results = detector.predict("Your text to analyze")
+  print(results)
+  # Output: {''toxicity'': 0.1, ''severe_toxicity'': 0.05, ''obscene'': 0.03, ...}
+  ```
+
+  ## Configuration Parameters
+  No specific configuration parameters required - uses pre-trained models.
+
+  ## Integration Example
+  ```python
+  def validate_output(text):
+      detector = Detoxify(''original'')
+      results = detector.predict(text)
+      
+      # Check if any toxicity score exceeds threshold
+      if any(score > 0.7 for score in results.values()):
+          return {"safe": False, "scores": results}
+      return {"safe": True, "scores": results}
+  ```

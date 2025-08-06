@@ -14,7 +14,6 @@
 package com.evalguard.model;
 
 import com.evalguard.model.ReportContext;
-import com.evalguard.model.ReportTasksInner;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;

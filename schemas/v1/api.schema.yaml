@@ -23,41 +23,15 @@ servers:
 
 paths:
   /reports:
-    get:
+    post:
       summary: List evaluation reports
       description: |
-        Retrieve a list of evaluation reports with optional filtering.
-        Supports filtering by model name, evaluation date range, task type, and other criteria.
+        Retrieve a list of evaluation reports with flexible filtering.
+        Supports filtering by model name, evaluation date range, task type, metrics, dtype, and other criteria.
       operationId: listReports
+      tags:
+        - Reports
       parameters:
-        - name: model_name
-          in: query
-          description: Filter reports by model name (exact match)
-          required: false
-          schema:
-            type: string
-          example: "meta-llama/Llama-3.1-8B-Instruct"
-        - name: model_source
-          in: query
-          description: Filter reports by model source/organization
-          required: false
-          schema:
-            type: string
-          example: "hf"
-        - name: task_ref
-          in: query
-          description: Filter reports containing specific task
-          required: false
-          schema:
-            type: string
-          example: "truthfulqa_mc1"
-        - name: metric
-          in: query
-          description: Filter reports containing specific metric
-          required: false
-          schema:
-            type: string
-          example: "acc"
         - name: limit
           in: query
           description: Maximum number of reports to return
@@ -65,7 +39,6 @@ paths:
           schema:
             type: integer
             minimum: 1
-            maximum: 100
             default: 20
           example: 50
         - name: offset
@@ -77,6 +50,20 @@ paths:
             minimum: 0
             default: 0
           example: 0
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './report_query.schema.yaml'
+            example:
+              query:
+                model_name: "meta-llama/Llama-3.1-8B-Instruct"
+                tasks: ["truthfulqa_mc1"]
+                metrics: ["acc"]
+                report_context:
+                  dtype: "fp16"
+
       responses:
         '200':
           description: List of evaluation reports
@@ -125,6 +112,149 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /guardrails:
+    get:
+      summary: List guardrails
+      description: |
+        Retrieve a list of guardrails with optional filtering by tasks and metrics.
+        Guardrails are policies or operational constraints that should be applied during 
+        model evaluation or deployment.
+      operationId: listGuardrails
+      tags:
+        - Guardrails
+      parameters:
+        - name: tasks
+          in: query
+          description: Comma-separated list of task identifiers to filter guardrails
+          required: false
+          schema:
+            type: string
+          example: "truthfulqa_mc1,winogender_schemas"
+        - name: metrics
+          in: query
+          description: Comma-separated list of metric identifiers to filter guardrails
+          required: false
+          schema:
+            type: string
+          example: "acc,acc_norm,pct_stereotype"
+        - name: limit
+          in: query
+          description: Maximum number of guardrails to return
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          example: 50
+        - name: offset
+          in: query
+          description: Number of guardrails to skip for pagination
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          example: 0
+      responses:
+        '200':
+          description: List of guardrails
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  guardrails:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Guardrail'
+                  pagination:
+                    $ref: '#/components/schemas/PaginationInfo'
+              example:
+                guardrails:
+                  - id: "truthfulness-check"
+                    name: "Truthfulness Verification"
+                    description: "Ensures model responses are truthful and avoid hallucination"
+                    target:
+                      tasks:
+                        - "truthfulqa_mc1"
+                      metrics:
+                        - "acc"
+                    scope: "output"
+                    instructions: "Verify that model responses are factually accurate and do not contain false information"
+                pagination:
+                  total: 25
+                  limit: 20
+                  offset: 0
+                  has_more: true
+        '400':
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /guardrails/{guardrail_id}:
+    get:
+      summary: Get guardrail by ID
+      description: |
+        Retrieve a specific guardrail by its unique identifier.
+        Returns the complete guardrail including target scope, instructions, and metadata.
+      operationId: getGuardrail
+      tags:
+        - Guardrails
+      parameters:
+        - name: guardrail_id
+          in: path
+          description: Unique identifier of the guardrail
+          required: true
+          schema:
+            type: string
+          example: "truthfulness-check"
+      responses:
+        '200':
+          description: Guardrail details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Guardrail'
+              example:
+                id: "truthfulness-check"
+                name: "Truthfulness Verification"
+                description: "Ensures model responses are truthful and avoid hallucination"
+                metadata_keys:
+                  - "language"
+                  - "data_source"
+                target:
+                  tasks:
+                    - "truthfulqa_mc1"
+                  metrics:
+                    - "acc"
+                  models:
+                    - "meta-llama/Llama-3.1-8B-Instruct"
+                scope: "output"
+                external_references:
+                  - "https://arxiv.org/abs/2209.07958"
+                instructions: "Verify that model responses are factually accurate and do not contain false information"
+        '404':
+          description: Guardrail not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /reports/{report_id}:
     get:
       summary: Get evaluation report by ID
@@ -140,6 +270,8 @@ paths:
           schema:
             type: string
           example: "llama-3.1-8b-instruct-eval-2025-01-15"
+      tags:
+        - Reports
       responses:
         '200':
           description: Evaluation report details
@@ -211,6 +343,8 @@ paths:
         Retrieve only the metrics/results for a specific evaluation report.
         Useful when you only need the performance data without the full context.
       operationId: getReportMetrics
+      tags:
+        - Reports
       parameters:
         - name: report_id
           in: path
@@ -275,6 +409,8 @@ paths:
         Retrieve a list of all models that have evaluation reports in the system.
         Useful for building model selection interfaces.
       operationId: listModels
+      tags:
+        - Models
       parameters:
         - name: source
           in: query
@@ -313,6 +449,8 @@ paths:
         Retrieve a list of all evaluation tasks available in the system.
         Useful for building task selection interfaces.
       operationId: listTasks
+      tags:
+        - Tasks
       responses:
         '200':
           description: List of tasks
@@ -348,6 +486,8 @@ paths:
         Useful for interpreting metric results across multiple tasks in a report.
         Supports filtering by specific tasks and metrics.
       operationId: getThresholds
+      tags:
+        - Thresholds
       parameters:
         - name: tasks
           in: query
@@ -461,6 +601,12 @@ components:
     Threshold:
       $ref: './threshold.schema.yaml'
 
+    Guardrail:
+      $ref: './guardrail.schema.yaml'
+
+    ReportQuery:
+      $ref: './report_query.schema.yaml'
+
     Error:
       $ref: './error.schema.yaml'
 
@@ -470,4 +616,6 @@ tags:
   - name: Models
     description: Operations for accessing model information
   - name: Tasks
-    description: Operations for accessing task information 
+    description: Operations for accessing task information
+  - name: Guardrails
+    description: Operations for accessing guardrails 

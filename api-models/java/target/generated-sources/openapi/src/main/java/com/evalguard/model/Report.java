@@ -20,7 +20,6 @@ import java.util.Objects;
 import java.util.Map;
 import java.util.HashMap;
 import com.evalguard.model.ReportContext;
-import com.evalguard.model.ReportTasksInner;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -56,7 +55,7 @@ public class Report {
   private ReportContext context;
 
   public static final String JSON_PROPERTY_TASKS = "tasks";
-  private List<ReportTasksInner> tasks;
+  private List<Object> tasks;
 
   public static final String JSON_PROPERTY_RESULTS = "results";
   private List<Object> results;
@@ -147,12 +146,12 @@ public class Report {
   }
 
 
-  public Report tasks(List<ReportTasksInner> tasks) {
+  public Report tasks(List<Object> tasks) {
     this.tasks = tasks;
     return this;
   }
 
-  public Report addTasksItem(ReportTasksInner tasksItem) {
+  public Report addTasksItem(Object tasksItem) {
     if (this.tasks == null) {
       this.tasks = new ArrayList<>();
     }
@@ -161,21 +160,21 @@ public class Report {
   }
 
    /**
-   * List of tasks in the report.
+   * List of tasks in the report. The keys are the task names.
    * @return tasks
   **/
   @javax.annotation.Nullable
   @JsonProperty(JSON_PROPERTY_TASKS)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
 
-  public List<ReportTasksInner> getTasks() {
+  public List<Object> getTasks() {
     return tasks;
   }
 
 
   @JsonProperty(JSON_PROPERTY_TASKS)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setTasks(List<ReportTasksInner> tasks) {
+  public void setTasks(List<Object> tasks) {
     this.tasks = tasks;
   }
 
@@ -194,7 +193,7 @@ public class Report {
   }
 
    /**
-   * List of results in the report.
+   * List of results in the report. The keys are the metric names.
    * @return results
   **/
   @javax.annotation.Nullable
@@ -315,10 +314,9 @@ public class Report {
     // add `tasks` to the URL query string
     if (getTasks() != null) {
       for (int i = 0; i < getTasks().size(); i++) {
-        if (getTasks().get(i) != null) {
-          joiner.add(getTasks().get(i).toUrlQueryString(String.format("%stasks%s%s", prefix, suffix,
-          "".equals(suffix) ? "" : String.format("%s%d%s", containerPrefix, i, containerSuffix))));
-        }
+        joiner.add(String.format("%stasks%s%s=%s", prefix, suffix,
+            "".equals(suffix) ? "" : String.format("%s%d%s", containerPrefix, i, containerSuffix),
+            URLEncoder.encode(String.valueOf(getTasks().get(i)), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
       }
     }
 
