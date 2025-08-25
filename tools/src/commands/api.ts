@@ -1,20 +1,36 @@
 import { Command } from 'commander';
 import { execSync } from 'child_process';
 import * as path from 'path';
+import * as fs from 'fs';
+
+// Helper function to find project root
+function findProjectRoot(): string {
+  let currentDir = process.cwd();
+  while (currentDir !== '/' && currentDir !== '') {
+    if (fs.existsSync(path.join(currentDir, 'schemas')) && 
+        fs.existsSync(path.join(currentDir, 'api-models'))) {
+      return currentDir;
+    }
+    currentDir = path.dirname(currentDir);
+  }
+  throw new Error('Could not find project root (directory containing schemas/ and api-models/)');
+}
 
 // API Model Generation Functions
 async function generateApiModels(type: string, version: string): Promise<void> {
   console.log(`🔧 Generating API models (${type}) from version ${version}...`);
   
+  const projectRoot = findProjectRoot();
+  
   try {
     if (type === 'java' || type === 'both') {
       console.log('📦 Generating Java models...');
-      execSync(`cd ${path.join(__dirname, '../../../api-models/java')} && mvn clean generate-sources compile -Dapi.version=${version}`, { stdio: 'inherit' });
+      execSync(`cd ${path.join(projectRoot, 'api-models/java')} && mvn clean generate-sources compile -Dapi.version=${version}`, { stdio: 'inherit' });
     }
     
     if (type === 'js' || type === 'both') {
       console.log('📦 Generating TypeScript models...');
-      execSync(`cd ${path.join(__dirname, '../../../api-models/typescript')} && npm install && npm run generate --version ${version} && npm run build`, { stdio: 'inherit' });
+      execSync(`cd ${path.join(projectRoot, 'api-models/typescript')} && npm install && npm run generate --version ${version} && npm run build`, { stdio: 'inherit' });
     }
     
     console.log('✅ API models generated successfully!');
@@ -27,6 +43,8 @@ async function generateApiModels(type: string, version: string): Promise<void> {
 async function validateApiModels(type: string, version: string): Promise<void> {
   console.log(`🔍 Validating API model generation (${type}) for version ${version}...`);
   
+  const projectRoot = findProjectRoot();
+  
   try {
     // Store current Git state
     console.log('📸 Storing current Git state...');
@@ -36,10 +54,10 @@ async function validateApiModels(type: string, version: string): Promise<void> {
     // Clean previously generated files
     console.log('🧹 Cleaning previously generated files...');
     if (type === 'java' || type === 'both') {
-      execSync(`rm -rf ${path.join(__dirname, '../../../api-models/java/target')}`, { stdio: 'inherit' });
+      execSync(`rm -rf ${path.join(projectRoot, 'api-models/java/target')}`, { stdio: 'inherit' });
     }
     if (type === 'js' || type === 'both') {
-      execSync(`rm -rf ${path.join(__dirname, '../../../api-models/typescript/dist')} ${path.join(__dirname, '../../../api-models/typescript/src/generated')}`, { stdio: 'inherit' });
+      execSync(`rm -rf ${path.join(projectRoot, 'api-models/typescript/dist')} ${path.join(projectRoot, 'api-models/typescript/src/generated')}`, { stdio: 'inherit' });
     }
     
     // Generate models
@@ -78,12 +96,14 @@ async function validateApiModels(type: string, version: string): Promise<void> {
 async function cleanApiModels(type: string): Promise<void> {
   console.log(`🧹 Cleaning API models (${type})...`);
   
+  const projectRoot = findProjectRoot();
+  
   try {
     if (type === 'java' || type === 'both') {
-      execSync(`rm -rf ${path.join(__dirname, '../../../api-models/java/target')}`, { stdio: 'inherit' });
+      execSync(`rm -rf ${path.join(projectRoot, 'api-models/java/target')}`, { stdio: 'inherit' });
     }
     if (type === 'js' || type === 'both') {
-      execSync(`rm -rf ${path.join(__dirname, '../../../api-models/typescript/dist')} ${path.join(__dirname, '../../../api-models/typescript/src/generated')}`, { stdio: 'inherit' });
+      execSync(`rm -rf ${path.join(projectRoot, 'api-models/typescript/dist')} ${path.join(projectRoot, 'api-models/typescript/src/generated')}`, { stdio: 'inherit' });
     }
     console.log('✅ API models cleaned');
   } catch (error) {
@@ -95,8 +115,10 @@ async function cleanApiModels(type: string): Promise<void> {
 async function installApiModels(): Promise<void> {
   console.log('🔧 Installing API model dependencies...');
   
+  const projectRoot = findProjectRoot();
+  
   try {
-    execSync(`cd ${path.join(__dirname, '../../../api-models/typescript')} && npm install`, { stdio: 'inherit' });
+    execSync(`cd ${path.join(projectRoot, 'api-models/typescript')} && npm install`, { stdio: 'inherit' });
     console.log('✅ API dependencies installed');
   } catch (error) {
     console.error('❌ Error installing API models:', error);
@@ -119,7 +141,8 @@ async function publishApiModels(type: string, version: string): Promise<void> {
         process.exit(1);
       }
       
-      execSync(`cd ${path.join(__dirname, '../../../api-models/java')} && mvn deploy -Dapi.version=${version}`, { 
+      const projectRoot = findProjectRoot();
+      execSync(`cd ${path.join(projectRoot, 'api-models/java')} && mvn deploy -Dapi.version=${version}`, { 
         stdio: 'inherit',
         env: { ...process.env, GITHUB_TOKEN: githubToken, GITHUB_ACTOR: githubActor }
       });
@@ -133,7 +156,8 @@ async function publishApiModels(type: string, version: string): Promise<void> {
         process.exit(1);
       }
       
-      execSync(`cd ${path.join(__dirname, '../../../api-models/typescript')} && npm publish`, { 
+      const projectRoot = findProjectRoot();
+      execSync(`cd ${path.join(projectRoot, 'api-models/typescript')} && npm publish`, { 
         stdio: 'inherit',
         env: { ...process.env, NODE_AUTH_TOKEN: githubToken }
       });
