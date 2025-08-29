@@ -1,0 +1,79 @@
+$schema: http://json-schema.org/draft/2020-12/schema
+$id: https://github.com/evalguard/evalguard/schemas/v1/model_card.schema.yaml
+title: ModelCard
+description: >
+  A comprehensive model card that includes model identification, evaluation results 
+  with tasks, metrics, thresholds, and recommended guardrails for responsible AI deployment.
+type: object
+properties:
+  model:
+    $ref: "model_info.schema.yaml"
+  tasks:
+    type: object
+    description: Tasks with their definitions, metrics, and evaluation results. Keys are task identifiers.
+    patternProperties:
+      "^[a-zA-Z0-9_-]+$":
+        $ref: "#/definitions/TaskResult"
+  guardrails:
+    type: array
+    description: List of recommended guardrails for this model
+    items:
+      $ref: "guardrail.schema.yaml"
+required:
+  - model
+  - tasks
+additionalProperties: false
+definitions:
+  TaskResult:
+    type: object
+    description: A task with its definition, metrics, and evaluation results
+    properties:
+      task:
+        $ref: "task_definition.schema.yaml"
+      metrics:
+        type: array
+        description: List of metrics results for this task.
+        items:
+          $ref: "#/definitions/MetricResult"
+    required:
+      - task
+      - metrics
+    additionalProperties: false
+  MetricResult:
+    type: object
+    description: A metric with its definition, evaluation result, and thresholds
+    properties:
+      metric:
+        $ref: "metric_definition.schema.yaml"
+      report_ref:
+        type: object
+        description: Reference to the report that contains the full context for this metric calculation
+        $ref: "#/definitions/ReportRef"
+      value:
+        type: number
+        description: The calculated metric value
+      stderr:
+        type: number
+        description: Standard error of the metric value (if available)
+      thresholds:
+        type: array
+        description: Applicable threshold ranges for this metric value
+        items:
+          $ref: "threshold.schema.yaml#/definitions/ThresholdRangeItem"
+    required:
+      - metric
+      - report_id
+      - value
+    additionalProperties: false
+  ReportRef:
+    type: object
+    description: Reference to a report
+    properties:
+      id:
+        type: string
+        description: Unique report identifier
+      type:
+        type: string
+        description: Type of the report
+        enum:
+          - lm-eval-report

@@ -8,7 +8,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **string** | Unique report identifier. | [optional] [default to undefined]
 **metadata** | **{ [key: string]: string; }** | Flexible key-value metadata about the report generation. | [optional] [default to undefined]
-**context** | [**ReportContext**](ReportContext.md) |  | [optional] [default to undefined]
+**context** | [**ReportschemaContext**](ReportschemaContext.md) |  | [optional] [default to undefined]
 **tasks** | **Array&lt;object&gt;** | List of tasks in the report. The keys are the task names. | [optional] [default to undefined]
 **results** | **Array&lt;object&gt;** | List of results in the report. The keys are the metric names. | [optional] [default to undefined]
 

@@ -6,8 +6,5 @@ tags:
   - stereotyping
   - fairness
 category: language_modeling
-metrics:
-  - likelihood_diff
-  - pct_stereotype
 languages:
   - en

@@ -1,4 +1,4 @@
-# Taskschema
+# TaskDefinitionschema
 
 Schema for a model evaluation task, based on lm-eval report data plus user-added metadata.
 
@@ -10,21 +10,19 @@ Name | Type | Description | Notes
 **name** | **string** | Human-readable name of the task. | [default to undefined]
 **description** | **string** | Optional detailed description of the task. | [optional] [default to undefined]
 **category** | **string** | Optional category of the task, e.g. \&#39;question_answering\&#39;, \&#39;language_modeling\&#39;. | [optional] [default to undefined]
-**metrics** | **Array&lt;string&gt;** | List of metric IDs applicable to this task. | [default to undefined]
-**tags** | **Array&lt;string&gt;** | Optional tags for the task, e.g. domain, language, difficulty. | [optional] [default to undefined]
+**tags** | **Array&lt;string&gt;** | Optional tags for the task, e.g. domain, difficulty. | [optional] [default to undefined]
 **languages** | **Array&lt;string&gt;** | Optional list of languages relevant to the task. | [optional] [default to undefined]
 
 ## Example
 
 ```typescript
-import { Taskschema } from '@trustification/evalguard-api-model';
+import { TaskDefinitionschema } from '@trustification/evalguard-api-model';
 
-const instance: Taskschema = {
+const instance: TaskDefinitionschema = {
     id,
     name,
     description,
     category,
-    metrics,
     tags,
     languages,
 };

@@ -6,6 +6,3 @@ tags:
   - hate-speech
   - safety
 category: toxicity_detection
-metrics:
-  - acc
-  - acc_norm

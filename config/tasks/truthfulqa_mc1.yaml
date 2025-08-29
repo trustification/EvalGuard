@@ -4,5 +4,3 @@ description: TruthfulQA Multiple Choice - tests truthfulness in question answeri
 tags:
   - truthfulqa
 category: question_answering
-metrics:
-  - acc

@@ -7,9 +7,8 @@ import { CommandOptions } from '../types';
 import { ValidationResult } from '../types/validation';
 
 interface ValidationContext {
-  allMetrics: Set<string>;
-  allTasks: Set<string>;
-  taskMetrics: Map<string, Set<string>>; // task ID -> set of metric IDs
+  taskIds: Set<string>; // track unique task IDs
+  metricIds: Set<string>; // track unique metric IDs
   thresholdTasks: Set<string>; // track unique task IDs in thresholds
   guardrailIds: Set<string>; // track unique guardrail IDs
   validators: any;
@@ -40,8 +39,8 @@ export async function validateCommand(options: ValidateOptions): Promise<void> {
     
     // Load versioned schemas
     const schemas = {
-      tasks: loadVersionedSchema(schemasDir, 'task'),
-      metrics: loadVersionedSchema(schemasDir, 'metric'),
+      tasks: loadVersionedSchema(schemasDir, 'task_definition'),
+      metrics: loadVersionedSchema(schemasDir, 'metric_definition'),
       thresholds: loadVersionedSchema(schemasDir, 'threshold'),
       guardrails: loadVersionedSchema(schemasDir, 'guardrail')
     };
@@ -55,9 +54,8 @@ export async function validateCommand(options: ValidateOptions): Promise<void> {
     };
     
     const context: ValidationContext = {
-      allMetrics: new Set<string>(),
-      allTasks: new Set<string>(),
-      taskMetrics: new Map<string, Set<string>>(),
+      taskIds: new Set<string>(),
+      metricIds: new Set<string>(),
       thresholdTasks: new Set<string>(),
       guardrailIds: new Set<string>(),
       validators
@@ -112,6 +110,12 @@ async function validateSpecificType(type: string, configDir: string, context: Va
   for (const file of files) {
     const filePath = path.join(typeDir, file);
     const result = await validateFile(filePath, context.validators, normalizedType);
+    
+    // Add uniqueness validation
+    if (result.valid && result.data) {
+      validateUniqueness(result, normalizedType, context);
+    }
+    
     results.push(result);
   }
   
@@ -121,171 +125,87 @@ async function validateSpecificType(type: string, configDir: string, context: Va
 async function validateAllTypes(configDir: string, context: ValidationContext): Promise<ValidationResult[]> {
   const results: ValidationResult[] = [];
   
-  // First pass: collect metrics and tasks for cross-reference validation
-  await collectMetricsAndTasks(configDir, context, results);
-  
-  // Second pass: validate tasks and thresholds with cross-references
-  await validateTasksAndThresholds(configDir, context, results);
+  // Validate all types and check for uniqueness
+  for (const type of ['metrics', 'tasks', 'thresholds', 'guardrails'] as const) {
+    const typeDir = path.join(configDir, type);
+    if (!fs.existsSync(typeDir)) {
+      console.warn(`⚠️  Directory not found: ${typeDir}`);
+      continue;
+    }
+    
+    const files = glob.sync('**/*.{json,yaml,yml}', { cwd: typeDir });
+    for (const file of files) {
+      const filePath = path.join(typeDir, file);
+      const result = await validateFile(filePath, context.validators, type);
+      
+      // Add uniqueness validation
+      if (result.valid && result.data) {
+        validateUniqueness(result, type, context);
+      }
+      
+      results.push(result);
+    }
+  }
   
   return results;
 }
 
-async function collectMetricsAndTasks(configDir: string, context: ValidationContext, results: ValidationResult[]): Promise<void> {
-  for (const type of ['metrics', 'tasks'] as const) {
-    const typeDir = path.join(configDir, type);
-    if (!fs.existsSync(typeDir)) {
-      console.warn(`⚠️  Directory not found: ${typeDir}`);
-      continue;
-    }
-    
-    const files = glob.sync('**/*.{json,yaml,yml}', { cwd: typeDir });
-    for (const file of files) {
-      const filePath = path.join(typeDir, file);
-      const result = await validateFile(filePath, context.validators, type);
-      
-      // Collect for cross-reference validation
-      if (result.valid && result.data) {
-        const id = result.data.id;
-        if (id) {
-          if (type === 'metrics') {
-            context.allMetrics.add(id);
-          } else if (type === 'tasks') {
-            context.allTasks.add(id);
-            // Store task metrics mapping
-            const metrics = result.data.metrics || [];
-            context.taskMetrics.set(id, new Set(metrics));
-          }
-        }
-      }
-      
-      results.push(result);
-    }
-  }
-}
-
-async function validateTasksAndThresholds(configDir: string, context: ValidationContext, results: ValidationResult[]): Promise<void> {
-  for (const type of ['tasks', 'thresholds', 'guardrails'] as const) {
-    const typeDir = path.join(configDir, type);
-    if (!fs.existsSync(typeDir)) {
-      console.warn(`⚠️  Directory not found: ${typeDir}`);
-      continue;
-    }
-    
-    const files = glob.sync('**/*.{json,yaml,yml}', { cwd: typeDir });
-    for (const file of files) {
-      const filePath = path.join(typeDir, file);
-      const result = await validateFile(filePath, context.validators, type);
-      
-      // Add cross-reference validation
-      if (result.valid && result.data) {
-        validateCrossReferences(result, type, context);
-      }
-      
-      results.push(result);
-    }
-  }
-}
-
-function validateCrossReferences(result: ValidationResult, type: string, context: ValidationContext): void {
+function validateUniqueness(result: ValidationResult, type: string, context: ValidationContext): void {
   if (type === 'tasks') {
-    validateTaskReferences(result, context);
+    validateTaskUniqueness(result, context);
+  } else if (type === 'metrics') {
+    validateMetricUniqueness(result, context);
   } else if (type === 'thresholds') {
-    validateThresholdReferences(result, context);
+    validateThresholdUniqueness(result, context);
   } else if (type === 'guardrails') {
-    validateGuardrailReferences(result, context);
+    validateGuardrailUniqueness(result, context);
   }
 }
 
-function validateTaskReferences(result: ValidationResult, context: ValidationContext): void {
-  const metrics = result.data.metrics || [];
-  for (const metricId of metrics) {
-    if (!context.allMetrics.has(metricId)) {
-      result.valid = false;
-      result.errors.push(`Task references non-existent metric: '${metricId}'`);
-    }
-  }
-}
-
-function validateThresholdReferences(result: ValidationResult, context: ValidationContext): void {
-  // Validate that threshold task exists
-  const taskId = result.data.task;
-  if (taskId && !context.allTasks.has(taskId)) {
-    result.valid = false;
-    result.errors.push(`Threshold references non-existent task: '${taskId}'`);
-    return; // Don't validate metrics if task doesn't exist
-  }
-  
-  // Validate that threshold task ID is unique
-  if (taskId && context.thresholdTasks.has(taskId)) {
-    result.valid = false;
-    result.errors.push(`Duplicate threshold task ID: '${taskId}' - all threshold metrics for a task must be grouped together`);
-    return;
-  }
-  
-  // Add task ID to set for future duplicate checking
+function validateTaskUniqueness(result: ValidationResult, context: ValidationContext): void {
+  const taskId = result.data.id;
   if (taskId) {
-    context.thresholdTasks.add(taskId);
-  }
-  
-  // Validate that threshold metrics exist
-  const thresholds = result.data.thresholds || {};
-  for (const metricId of Object.keys(thresholds)) {
-    if (!context.allMetrics.has(metricId)) {
+    if (context.taskIds.has(taskId)) {
       result.valid = false;
-      result.errors.push(`Threshold references non-existent metric: '${metricId}'`);
+      result.errors.push(`Duplicate task ID: '${taskId}'`);
+    } else {
+      context.taskIds.add(taskId);
     }
   }
 }
 
-function validateGuardrailReferences(result: ValidationResult, context: ValidationContext): void {
-  // Validate that guardrail ID is unique
+function validateMetricUniqueness(result: ValidationResult, context: ValidationContext): void {
+  const metricId = result.data.id;
+  if (metricId) {
+    if (context.metricIds.has(metricId)) {
+      result.valid = false;
+      result.errors.push(`Duplicate metric ID: '${metricId}'`);
+    } else {
+      context.metricIds.add(metricId);
+    }
+  }
+}
+
+function validateThresholdUniqueness(result: ValidationResult, context: ValidationContext): void {
+  const taskId = result.data.task;
+  if (taskId) {
+    if (context.thresholdTasks.has(taskId)) {
+      result.valid = false;
+      result.errors.push(`Duplicate threshold task ID: '${taskId}' - all threshold metrics for a task must be grouped together`);
+    } else {
+      context.thresholdTasks.add(taskId);
+    }
+  }
+}
+
+function validateGuardrailUniqueness(result: ValidationResult, context: ValidationContext): void {
   const guardrailId = result.data.id;
-  if (guardrailId && context.guardrailIds.has(guardrailId)) {
-    result.valid = false;
-    result.errors.push(`Duplicate guardrail ID: '${guardrailId}'`);
-    return;
-  }
-  
-  // Add guardrail ID to set for future duplicate checking
   if (guardrailId) {
-    context.guardrailIds.add(guardrailId);
-  }
-  
-  // Validate targets structure and references
-  const targets = result.data.targets || [];
-  if (!Array.isArray(targets) || targets.length === 0) {
-    result.valid = false;
-    result.errors.push('Guardrail must have at least one target');
-    return;
-  }
-  
-  for (const target of targets) {
-    // Validate task reference
-    const taskId = target.task;
-    if (!taskId) {
+    if (context.guardrailIds.has(guardrailId)) {
       result.valid = false;
-      result.errors.push('Guardrail target must specify a task');
-      continue;
-    }
-    
-    if (!context.allTasks.has(taskId)) {
-      result.valid = false;
-      result.errors.push(`Guardrail references non-existent task: '${taskId}'`);
-    }
-    
-    // Validate metrics references
-    const metrics = target.metrics || [];
-    if (!Array.isArray(metrics) || metrics.length === 0) {
-      result.valid = false;
-      result.errors.push(`Guardrail target for task '${taskId}' must specify at least one metric`);
-      continue;
-    }
-    
-    for (const metricId of metrics) {
-      if (!context.allMetrics.has(metricId)) {
-        result.valid = false;
-        result.errors.push(`Guardrail references non-existent metric: '${metricId}' for task '${taskId}'`);
-      }
+      result.errors.push(`Duplicate guardrail ID: '${guardrailId}'`);
+    } else {
+      context.guardrailIds.add(guardrailId);
     }
   }
 }

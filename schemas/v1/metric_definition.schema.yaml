@@ -1,6 +1,6 @@
 $schema: http://json-schema.org/draft/2020-12/schema
-$id: https://github.com/evalguard/evalguard/schemas/v1/metric.schema.yaml
-title: Metric
+$id: https://github.com/evalguard/evalguard/schemas/v1/metric_definition.schema.yaml
+title: MetricDefinition
 description: Schema for a metric used to evaluate tasks in model evaluations.
 type: object
 properties:

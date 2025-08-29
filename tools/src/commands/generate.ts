@@ -9,7 +9,6 @@ interface Task {
   id: string;
   name: string;
   category?: string;
-  metrics?: string[];
   tags?: string[];
 }
 
@@ -50,8 +49,7 @@ async function processReport(reportPath: string): Promise<{ tasks: Task[], metri
     const task: Task = {
       id: taskId,
       name: config.task,
-      tags: config.tag,
-      metrics: []
+      tags: config.tag
     };
     
     // Extract metrics from metric_list
@@ -68,10 +66,6 @@ async function processReport(reportPath: string): Promise<{ tasks: Task[], metri
         metrics.push(metric);
         seenMetrics.add(metricId);
       }
-      
-      // Add metric to task
-              if (!task.metrics) task.metrics = [];
-        task.metrics.push(metricId);
     }
     
     tasks.push(task);
@@ -193,11 +187,10 @@ export async function generateCommand(options: GenerateOptions): Promise<void> {
     }
     
     let newTasksCount = 0;
-    let updatedTasksCount = 0;
     let newMetricsCount = 0;
     let skippedMetricsCount = 0;
     
-    // Write metrics first (they need to exist before tasks reference them)
+    // Write metrics
     for (const metric of allMetrics) {
       const metricFile = path.join(metricsDir, `${metric.id}.yaml`);
       const existingMetric = loadExistingMetric(metric.id, metricsDir);
@@ -219,20 +212,7 @@ export async function generateCommand(options: GenerateOptions): Promise<void> {
       const existingTask = loadExistingTask(task.id, tasksDir);
       
       if (existingTask) {
-        // Check if we need to add new metrics to existing task
-        const existingMetrics = new Set(existingTask.metrics || []);
-        const newMetrics = task.metrics?.filter((metricId: string) => !existingMetrics.has(metricId)) || [];
-        
-        if (newMetrics.length > 0) {
-          // Update existing task with new metrics
-          existingTask.metrics = [...(existingTask.metrics || []), ...newMetrics];
-          const taskYaml = yaml.dump(existingTask);
-          fs.writeFileSync(taskFile, taskYaml);
-          console.log(`🔄 Updated existing task with ${newMetrics.length} new metrics: ${taskFile}`);
-          updatedTasksCount++;
-        } else {
-          console.log(`⏭️  Skipped existing task (no new metrics): ${taskFile}`);
-        }
+        console.log(`⏭️  Skipped existing task: ${taskFile}`);
       } else {
         // Create new task
         const taskYaml = yaml.dump(task);
@@ -244,7 +224,6 @@ export async function generateCommand(options: GenerateOptions): Promise<void> {
     
     console.log(`\n📊 Summary:`);
     console.log(`✅ Generated ${newTasksCount} new tasks`);
-    console.log(`🔄 Updated ${updatedTasksCount} existing tasks with new metrics`);
     console.log(`✅ Generated ${newMetricsCount} new metrics`);
     console.log(`⏭️  Skipped ${skippedMetricsCount} existing metrics`);
     console.log(`✅ Processed ${reportPaths.length} report file(s)`);

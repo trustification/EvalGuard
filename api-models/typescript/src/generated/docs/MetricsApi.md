@@ -1,32 +1,32 @@
-# GuardrailsApi
+# MetricsApi
 
 All URIs are relative to *https://api.evalguard.org/v1*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
-|[**getGuardrail**](#getguardrail) | **GET** /guardrails/{guardrail_id} | Get guardrail by ID|
-|[**listGuardrails**](#listguardrails) | **GET** /guardrails | List guardrails|
+|[**getMetric**](#getmetric) | **GET** /metrics/{metric_id} | Get metric by ID|
+|[**listMetrics**](#listmetrics) | **GET** /metrics | List available metrics|
 
-# **getGuardrail**
-> Guardrailschema getGuardrail()
+# **getMetric**
+> MetricDefinitionschema getMetric()
 
-Retrieve a specific guardrail by its unique identifier. Returns the complete guardrail including target scope, instructions, and metadata. 
+Retrieve a specific metric by its unique identifier. 
 
 ### Example
 
 ```typescript
 import {
-    GuardrailsApi,
+    MetricsApi,
     Configuration
 } from '@trustification/evalguard-api-model';
 
 const configuration = new Configuration();
-const apiInstance = new GuardrailsApi(configuration);
+const apiInstance = new MetricsApi(configuration);
 
-let guardrailId: string; //Unique identifier of the guardrail (default to undefined)
+let metricId: string; //Unique identifier of the metric (default to undefined)
 
-const { status, data } = await apiInstance.getGuardrail(
-    guardrailId
+const { status, data } = await apiInstance.getMetric(
+    metricId
 );
 ```
 
@@ -34,12 +34,12 @@ const { status, data } = await apiInstance.getGuardrail(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **guardrailId** | [**string**] | Unique identifier of the guardrail | defaults to undefined|
+| **metricId** | [**string**] | Unique identifier of the metric | defaults to undefined|
 
 
 ### Return type
 
-**Guardrailschema**
+**MetricDefinitionschema**
 
 ### Authorization
 
@@ -54,36 +54,32 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Guardrail details |  -  |
-|**404** | Guardrail not found |  -  |
+|**200** | Metric details |  -  |
+|**404** | Metric not found |  -  |
 |**500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **listGuardrails**
-> GuardrailsResponse listGuardrails()
+# **listMetrics**
+> MetricsResponse listMetrics()
 
-Retrieve a list of guardrails with optional filtering by tasks and metrics. Guardrails are policies or operational constraints that should be applied during  model evaluation or deployment. 
+Retrieve a list of all metrics that have evaluation reports in the system. Useful for building metric selection interfaces. 
 
 ### Example
 
 ```typescript
 import {
-    GuardrailsApi,
+    MetricsApi,
     Configuration
 } from '@trustification/evalguard-api-model';
 
 const configuration = new Configuration();
-const apiInstance = new GuardrailsApi(configuration);
+const apiInstance = new MetricsApi(configuration);
 
-let tasks: string; //Comma-separated list of task identifiers to filter guardrails (optional) (default to undefined)
-let metrics: string; //Comma-separated list of metric identifiers to filter guardrails (optional) (default to undefined)
 let limit: number; //Maximum number of items to return (optional) (default to 20)
 let offset: number; //Number of items to skip for pagination (optional) (default to 0)
 
-const { status, data } = await apiInstance.listGuardrails(
-    tasks,
-    metrics,
+const { status, data } = await apiInstance.listMetrics(
     limit,
     offset
 );
@@ -93,15 +89,13 @@ const { status, data } = await apiInstance.listGuardrails(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **tasks** | [**string**] | Comma-separated list of task identifiers to filter guardrails | (optional) defaults to undefined|
-| **metrics** | [**string**] | Comma-separated list of metric identifiers to filter guardrails | (optional) defaults to undefined|
 | **limit** | [**number**] | Maximum number of items to return | (optional) defaults to 20|
 | **offset** | [**number**] | Number of items to skip for pagination | (optional) defaults to 0|
 
 
 ### Return type
 
-**GuardrailsResponse**
+**MetricsResponse**
 
 ### Authorization
 
@@ -116,9 +110,7 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | List of guardrails |  -  |
-|**400** | Invalid query parameters |  -  |
-|**500** | Internal server error |  -  |
+|**200** | List of metrics |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

@@ -7,8 +7,5 @@ tags:
   - fairness
   - religion
 category: language_modeling
-metrics:
-  - likelihood_diff
-  - pct_stereotype
 languages:
   - fr

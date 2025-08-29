@@ -1,4 +1,4 @@
-# ReportContextExecution
+# ReportschemaContextExecution
 
 Execution information about the report generation.
 
@@ -12,9 +12,9 @@ Name | Type | Description | Notes
 ## Example
 
 ```typescript
-import { ReportContextExecution } from '@trustification/evalguard-api-model';
+import { ReportschemaContextExecution } from '@trustification/evalguard-api-model';
 
-const instance: ReportContextExecution = {
+const instance: ReportschemaContextExecution = {
     model_args_plain,
     model_args_dict,
 };

@@ -7,7 +7,5 @@ tags:
   - bias
   - social_bias
 category: coreference_resolution
-metrics:
-  - acc
 languages:
   - en

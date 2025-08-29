@@ -1,0 +1,127 @@
+# API specific Types Schema
+# This file defines specific types for the EvalGuard API
+PaginationInfo:
+  description: Pagination information
+  type: object
+  properties:
+    total:
+      type: integer
+      description: Total number of items
+    limit:
+      type: integer
+      description: Number of items per page
+    offset:
+      type: integer
+      description: Number of items skipped
+    has_more:
+      type: boolean
+      description: Whether there are more items available
+  required:
+    - total
+    - limit
+    - offset
+    - has_more
+  additionalProperties: false 
+
+Error:
+  description: Error response
+  type: object
+  properties:
+    error:
+      type: string
+      description: Error message
+    code:
+      type: string
+      description: Error code
+    details:
+      type: object
+      description: Additional error details
+      additionalProperties: true
+  required:
+    - error
+  additionalProperties: false 
+
+ModelCardsResponse:
+  type: object
+  description: Response containing a list of model cards
+  properties:
+    model_cards:
+      type: array
+      description: Array of model cards
+      items:
+        $ref: './model_card.schema.yaml'
+    pagination:
+      $ref: '#/PaginationInfo'
+  required:
+    - model_cards
+
+GuardrailsResponse:
+  type: object
+  description: Response containing a list of available guardrails
+  properties:
+    guardrails:
+      type: array
+      description: Array of guardrail definitions
+      items:
+        $ref: './guardrail.schema.yaml'
+    pagination:
+      $ref: '#/PaginationInfo'
+  required:
+    - guardrails
+
+ModelsInfoResponse:
+  type: object
+  description: Response containing a list of available models
+  properties:
+    models:
+      type: array
+      description: Array of model definitions
+      items:
+        $ref: './model_info.schema.yaml'
+    pagination:
+      $ref: '#/PaginationInfo'
+  required:
+    - models
+  
+TasksResponse:
+  type: object
+  description: Response containing a list of available tasks
+  properties:
+    tasks:
+      type: array
+      description: Array of task definitions
+      items:
+        type: object
+        additionalProperties: true
+    pagination:
+      $ref: '#/PaginationInfo'
+  required:
+    - tasks
+
+MetricsResponse:
+  type: object
+  description: Response containing a list of available metrics
+  properties:
+    metrics:
+      type: array
+      description: Array of metric definitions
+      items:
+        $ref: './metric_definition.schema.yaml'
+    pagination:
+      $ref: '#/PaginationInfo'
+  required:
+    - metrics
+
+ThresholdsResponse:
+  type: object
+  description: Response containing thresholds for specified tasks
+  properties:
+    thresholds:
+      type: array
+      description: Array of threshold definitions
+      items:
+        $ref: './threshold.schema.yaml'
+    pagination:
+      $ref: '#/PaginationInfo'
+  required:
+    - thresholds

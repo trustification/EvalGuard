@@ -1,33 +1,35 @@
-# ThresholdsApi
+# ModelCardsApi
 
 All URIs are relative to *https://api.evalguard.org/v1*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
-|[**getThresholds**](#getthresholds) | **GET** /thresholds | Get thresholds for multiple tasks and metrics|
+|[**listModelCards**](#listmodelcards) | **GET** /model-cards | List model cards|
 
-# **getThresholds**
-> ThresholdsResponse getThresholds()
+# **listModelCards**
+> ModelCardsResponse listModelCards()
 
-Retrieve performance thresholds for multiple tasks and metrics in a single request. Useful for interpreting metric results across multiple tasks in a report. Supports filtering by specific tasks and metrics. 
+Retrieve a list of model cards with flexible filtering. Supports filtering by model name, evaluation date range, task type, metrics, dtype, and other criteria. 
 
 ### Example
 
 ```typescript
 import {
-    ThresholdsApi,
+    ModelCardsApi,
     Configuration
 } from '@trustification/evalguard-api-model';
 
 const configuration = new Configuration();
-const apiInstance = new ThresholdsApi(configuration);
+const apiInstance = new ModelCardsApi(configuration);
 
-let tasks: string; //Comma-separated list of task IDs to get thresholds for (default to undefined)
-let metrics: string; //Comma-separated list of metric IDs to filter by (optional) (optional) (default to undefined)
+let modelName: string; //Filter by model name (optional) (default to undefined)
+let tasks: string; //Filter by tasks (optional) (default to undefined)
+let metrics: string; //Filter by metrics (optional) (default to undefined)
 let limit: number; //Maximum number of items to return (optional) (default to 20)
 let offset: number; //Number of items to skip for pagination (optional) (default to 0)
 
-const { status, data } = await apiInstance.getThresholds(
+const { status, data } = await apiInstance.listModelCards(
+    modelName,
     tasks,
     metrics,
     limit,
@@ -39,15 +41,16 @@ const { status, data } = await apiInstance.getThresholds(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **tasks** | [**string**] | Comma-separated list of task IDs to get thresholds for | defaults to undefined|
-| **metrics** | [**string**] | Comma-separated list of metric IDs to filter by (optional) | (optional) defaults to undefined|
+| **modelName** | [**string**] | Filter by model name | (optional) defaults to undefined|
+| **tasks** | [**string**] | Filter by tasks | (optional) defaults to undefined|
+| **metrics** | [**string**] | Filter by metrics | (optional) defaults to undefined|
 | **limit** | [**number**] | Maximum number of items to return | (optional) defaults to 20|
 | **offset** | [**number**] | Number of items to skip for pagination | (optional) defaults to 0|
 
 
 ### Return type
 
-**ThresholdsResponse**
+**ModelCardsResponse**
 
 ### Authorization
 
@@ -62,9 +65,8 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Thresholds for the specified tasks and metrics |  -  |
-|**404** | Thresholds not found for one or more specified tasks |  -  |
-|**500** | Internal server error |  -  |
+|**200** | List of model cards |  -  |
+|**400** | Invalid query parameters |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

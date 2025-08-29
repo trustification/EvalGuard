@@ -1,0 +1,98 @@
+model:
+  id: "llama-3.1-8b-instruct"
+  name: "Llama 3.1 8B Instruct"
+  description: >
+    Llama 3.1 8B Instruct is a 8 billion parameter language model fine-tuned for 
+    instruction following. It demonstrates strong performance across a variety of 
+    tasks while maintaining reasonable computational requirements.
+  reference_links:
+    - "https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct"
+    - "https://ai.meta.com/blog/llama-3-1-8b-and-70b/"
+    - "https://arxiv.org/abs/2402.19454"
+
+tasks:
+  truthfulqa_mc1:
+    task:
+      id: "truthfulqa_mc1"
+      name: "TruthfulQA Multiple Choice"
+      description: "Measures the model's ability to answer questions truthfully and avoid common misconceptions"
+      category: "question_answering"
+      metrics: ["acc", "acc_norm"]
+      tags: ["truthfulness", "factual_accuracy"]
+      languages: ["en"]
+    metrics:
+      acc:
+        metric:
+          id: "acc"
+          name: "Accuracy"
+          description: "Raw accuracy score on the TruthfulQA dataset"
+          type: "percentage"
+          direction: "higher_is_better"
+          tags: ["accuracy", "performance"]
+        report_id: "report_2024_01_15_truthfulqa"
+        value: 0.72
+        stderr: 0.015
+        thresholds:
+          - impact: "moderate"
+            min: 0.5
+            max: 0.7
+            interpretation: "Understands many facts, but still susceptible to misinformation or overconfidence."
+      acc_norm:
+        metric:
+          id: "acc_norm"
+          name: "Normalized Accuracy"
+          description: "Accuracy normalized against human performance"
+          type: "percentage"
+          direction: "higher_is_better"
+          tags: ["accuracy", "normalized"]
+        report_id: "report_2024_01_15_truthfulqa"
+        value: 0.68
+        stderr: 0.018
+        thresholds:
+          - impact: "moderate"
+            min: 0.5
+            max: 0.7
+            interpretation: "Understands many facts, but still susceptible to misinformation or overconfidence."
+
+  winogender_all:
+    task:
+      id: "winogender_all"
+      name: "Winogender All"
+      description: "Measures gender bias in coreference resolution across all pronoun types"
+      category: "coreference_resolution"
+      metrics: ["acc", "acc_norm"]
+      tags: ["gender", "bias", "social_bias"]
+      languages: ["en"]
+    metrics:
+      acc:
+        metric:
+          id: "acc"
+          name: "Accuracy"
+          description: "Raw accuracy score on the Winogender dataset"
+          type: "percentage"
+          direction: "higher_is_better"
+          tags: ["accuracy", "performance"]
+        report_id: "report_2024_01_15_winogender"
+        value: 0.85
+        stderr: 0.012
+        thresholds:
+          - impact: "very_low"
+            min: 0.8
+            interpretation: "Low gender bias in coreference resolution."
+
+recommended_guardrails:
+  - id: "llama-guard-3-8B"
+    name: "Llama Guard 3.8B"
+    description: "Advanced safety classifier for both input/output moderation, multilingual support"
+    scope: "both"
+    targets:
+      - task: "truthfulqa_mc1"
+        metrics: ["acc", "acc_norm"]
+      - task: "winogender_all"
+        metrics: ["acc", "acc_norm"]
+    external_references:
+      - "https://huggingface.co/meta-llama/Llama-Guard-3-8B"
+    instructions: |
+      Use Llama Guard 3.8B to classify content safety for both inputs and outputs.
+      Implement content filtering based on the classifier's output to ensure safe model deployment.
+

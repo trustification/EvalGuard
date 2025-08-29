@@ -1,6 +1,6 @@
 $schema: http://json-schema.org/draft/2020-12/schema
-$id: https://github.com/evalguard/evalguard/schemas/v1/task.schema.yaml
-title: Task
+$id: https://github.com/evalguard/evalguard/schemas/v1/task_definition.schema.yaml
+title: TaskDefinition
 description: Schema for a model evaluation task, based on lm-eval report data plus user-added metadata.
 type: object
 properties:
@@ -16,14 +16,9 @@ properties:
   category:
     type: string
     description: Optional category of the task, e.g. 'question_answering', 'language_modeling'.
-  metrics:
-    type: array
-    description: List of metric IDs applicable to this task.
-    items:
-      type: string
   tags:
     type: array
-    description: Optional tags for the task, e.g. domain, language, difficulty.
+    description: Optional tags for the task, e.g. domain, difficulty.
     items:
       type: string
   languages:
@@ -34,5 +29,4 @@ properties:
 required:
   - id
   - name
-  - metrics
 additionalProperties: false 

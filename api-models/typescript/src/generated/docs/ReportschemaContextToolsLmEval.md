@@ -1,19 +1,20 @@
-# ListModels200Response
+# ReportschemaContextToolsLmEval
 
+lm-eval library used to generate the report.
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**models** | [**Array&lt;ModelInfo&gt;**](ModelInfo.md) |  | [optional] [default to undefined]
+**version** | **string** |  | [optional] [default to undefined]
 
 ## Example
 
 ```typescript
-import { ListModels200Response } from '@trustification/evalguard-api-model';
+import { ReportschemaContextToolsLmEval } from '@trustification/evalguard-api-model';
 
-const instance: ListModels200Response = {
-    models,
+const instance: ReportschemaContextToolsLmEval = {
+    version,
 };
 ```
 

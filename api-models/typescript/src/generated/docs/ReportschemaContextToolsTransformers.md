@@ -1,6 +1,6 @@
-# ReportContextToolsLmEval
+# ReportschemaContextToolsTransformers
 
-lm-eval library used to generate the report.
+Transformers library used to generate the report.
 
 ## Properties
 
@@ -11,9 +11,9 @@ Name | Type | Description | Notes
 ## Example
 
 ```typescript
-import { ReportContextToolsLmEval } from '@trustification/evalguard-api-model';
+import { ReportschemaContextToolsTransformers } from '@trustification/evalguard-api-model';
 
-const instance: ReportContextToolsLmEval = {
+const instance: ReportschemaContextToolsTransformers = {
     version,
 };
 ```

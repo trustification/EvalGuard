@@ -1,4 +1,4 @@
-# ReportContext
+# ReportschemaContext
 
 Contextual information about the report generation.
 
@@ -10,15 +10,15 @@ Name | Type | Description | Notes
 **model_source** | **string** | Version of the model being evaluated. | [optional] [default to undefined]
 **git_hash** | **string** | Git hash of the model being evaluated. | [optional] [default to undefined]
 **date** | **number** | Timestamp of the report generation. | [optional] [default to undefined]
-**execution** | [**ReportContextExecution**](ReportContextExecution.md) |  | [optional] [default to undefined]
-**tools** | [**ReportContextTools**](ReportContextTools.md) |  | [optional] [default to undefined]
+**execution** | [**ReportschemaContextExecution**](ReportschemaContextExecution.md) |  | [optional] [default to undefined]
+**tools** | [**ReportschemaContextTools**](ReportschemaContextTools.md) |  | [optional] [default to undefined]
 
 ## Example
 
 ```typescript
-import { ReportContext } from '@trustification/evalguard-api-model';
+import { ReportschemaContext } from '@trustification/evalguard-api-model';
 
-const instance: ReportContext = {
+const instance: ReportschemaContext = {
     model_name,
     model_source,
     git_hash,

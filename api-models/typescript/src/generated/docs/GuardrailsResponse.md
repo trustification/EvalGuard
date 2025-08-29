@@ -1,19 +1,20 @@
-# ListGuardrails200Response
+# GuardrailsResponse
 
+Response containing a list of available guardrails
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**guardrails** | [**Array&lt;Guardrail&gt;**](Guardrail.md) |  | [optional] [default to undefined]
+**guardrails** | [**Array&lt;Guardrailschema&gt;**](Guardrailschema.md) | Array of guardrail definitions | [default to undefined]
 **pagination** | [**PaginationInfo**](PaginationInfo.md) |  | [optional] [default to undefined]
 
 ## Example
 
 ```typescript
-import { ListGuardrails200Response } from '@trustification/evalguard-api-model';
+import { GuardrailsResponse } from '@trustification/evalguard-api-model';
 
-const instance: ListGuardrails200Response = {
+const instance: GuardrailsResponse = {
     guardrails,
     pagination,
 };
