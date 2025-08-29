@@ -1,0 +1,6 @@
+id: microsoft/phi-2
+name: phi-2
+namespace: microsoft
+reference_links:
+  - name: Hugging Face
+    url: https://huggingface.co/microsoft/phi-2

@@ -125,3 +125,43 @@ ThresholdsResponse:
       $ref: '#/PaginationInfo'
   required:
     - thresholds
+
+ReportsResponse:
+  type: object
+  description: Response containing a list of evaluation reports
+  properties:
+    reports:
+      type: array
+      description: Collection of evaluation reports
+      items:
+        $ref: '#/ReportResponseItem'
+
+ReportResponseItem:
+  type: object
+  description: Evaluation report 
+  properties:
+    report_type:
+      $ref: '#/ReportType'
+    id:
+      type: string
+      description: Unique identifier of the report
+    model_name:
+      type: string
+      description: Name of the report
+    namespace:
+      type: string
+      description: Namespace of the model
+    created_at:
+      type: string
+      description: Timestamp of the report creation
+      format: date-time
+
+ReportType:
+  type: string
+  description: Type of the report
+  enum:
+    - "lm-eval"
+
+LmEvalReport:
+  type: object
+  description: LM Evaluation Harness report.

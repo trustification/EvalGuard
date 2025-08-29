@@ -58,7 +58,8 @@ Class | Method | HTTP request | Description
 *ModelCardsApi* | [**listModelCards**](docs/ModelCardsApi.md#listmodelcards) | **GET** /model-cards | List model cards
 *ModelsApi* | [**getModel**](docs/ModelsApi.md#getmodel) | **GET** /models/{model_id} | Get model by ID
 *ModelsApi* | [**listModels**](docs/ModelsApi.md#listmodels) | **GET** /models | List available models
-*ReportsApi* | [**getReport**](docs/ReportsApi.md#getreport) | **GET** /reports/{report_id} | Get evaluation report by ID
+*ReportsApi* | [**getReport**](docs/ReportsApi.md#getreport) | **GET** /reports/{namespace}/{model_name}/lm-eval/{report_id} | Get evaluation report by ID
+*ReportsApi* | [**listReports**](docs/ReportsApi.md#listreports) | **GET** /reports/{namespace}/{model_name} | List evaluation reports for a model
 *TasksApi* | [**getTask**](docs/TasksApi.md#gettask) | **GET** /tasks/{task_id} | Get task by ID
 *TasksApi* | [**listTasks**](docs/TasksApi.md#listtasks) | **GET** /tasks | List available tasks
 *ThresholdsApi* | [**getThresholds**](docs/ThresholdsApi.md#getthresholds) | **GET** /thresholds | Get thresholds for multiple tasks and metrics
@@ -78,12 +79,9 @@ Class | Method | HTTP request | Description
  - [ModelInfoschemaReferenceLinksInner](docs/ModelInfoschemaReferenceLinksInner.md)
  - [ModelsInfoResponse](docs/ModelsInfoResponse.md)
  - [PaginationInfo](docs/PaginationInfo.md)
- - [Reportschema](docs/Reportschema.md)
- - [ReportschemaContext](docs/ReportschemaContext.md)
- - [ReportschemaContextExecution](docs/ReportschemaContextExecution.md)
- - [ReportschemaContextTools](docs/ReportschemaContextTools.md)
- - [ReportschemaContextToolsLmEval](docs/ReportschemaContextToolsLmEval.md)
- - [ReportschemaContextToolsTransformers](docs/ReportschemaContextToolsTransformers.md)
+ - [ReportResponseItem](docs/ReportResponseItem.md)
+ - [ReportType](docs/ReportType.md)
+ - [ReportsResponse](docs/ReportsResponse.md)
  - [TaskDefinitionschema](docs/TaskDefinitionschema.md)
  - [TasksResponse](docs/TasksResponse.md)
  - [ThresholdsResponse](docs/ThresholdsResponse.md)

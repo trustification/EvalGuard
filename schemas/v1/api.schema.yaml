@@ -310,7 +310,76 @@ paths:
               schema:
                 $ref: './api_types.schema.yaml#/Error'
 
-  /reports/{report_id}:
+  /reports/{namespace}/{model_name}:
+    get:
+      summary: List evaluation reports for a model
+      description: |
+        Retrieve a list of all evaluation reports for a specific model.
+      operationId: listReports
+      tags:
+        - Reports
+      parameters:
+        - name: namespace
+          in: path
+          description: Namespace of the model
+          required: true
+          schema:
+            type: string
+          example: "meta-llama"
+        - name: model_name
+          in: path
+          description: Name of the model
+          required: true
+          schema:
+            type: string
+          example: "Llama-3.1-8B-Instruct"
+        - name: report_type
+          in: query
+          description: Type of report
+          required: false
+          schema:
+            $ref: './api_types.schema.yaml#/ReportType'
+          example: "lm-eval"
+        - name: limit
+          in: query
+          description: Maximum number of items to return
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          example: 50
+        - name: offset
+          in: query
+          description: Number of items to skip for pagination
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          example: 0
+      responses:
+        '200':
+          description: List of evaluation reports
+          content:
+            application/json:
+              schema:
+                $ref: './api_types.schema.yaml#/ReportsResponse'
+        '404':
+          description: Model not found
+          content:
+            application/json:
+              schema:
+                $ref: './api_types.schema.yaml#/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: './api_types.schema.yaml#/Error'
+
+  /reports/{namespace}/{model_name}/lm-eval/{report_id}:
     get:
       summary: Get evaluation report by ID
       description: |
@@ -318,6 +387,20 @@ paths:
         Returns the complete report including context, tasks, and results.
       operationId: getReport
       parameters:
+        - name: namespace
+          in: path
+          description: Namespace of the model
+          required: true
+          schema:
+            type: string
+          example: "meta-llama"
+        - name: model_name
+          in: path
+          description: Name of the model
+          required: true
+          schema:
+            type: string
+          example: "Llama-3.1-8B-Instruct"
         - name: report_id
           in: path
           description: Unique identifier of the report
@@ -333,51 +416,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: './report.schema.yaml'
-              example:
-                id: "llama-3.1-8b-instruct-eval-2025-01-15"
-                metadata:
-                  evaluation_date: "2025-01-15"
-                  evaluator: "lm-eval-harness"
-                  environment: "production"
-                context:
-                  model_name: "Llama-3.1-8B-Instruct"
-                  model_source: "meta-llama"
-                  git_hash: "abc123def456"
-                  date: 1705312800
-                  execution:
-                    model_args_plain: "--model-path /path/to/model"
-                    model_args_dict:
-                      model_path: "/path/to/model"
-                      device: "cuda"
-                      precision: "fp16"
-                  tools:
-                    lm_eval:
-                      version: "0.4.0"
-                    transformers:
-                      version: "4.35.0"
-                tasks:
-                  - task_ref: "truthfulqa_mc1"
-                    dataset_path: "/path/to/dataset"
-                    dataset_name: "truthful_qa"
-                    output_type: "multiple_choice"
-                    repeats: 1
-                    should_decontaminate: false
-                    unsafe_code: false
-                    n_shot: 0
-                    n_samples:
-                      original: 817
-                      effective: 817
-                    version: 1
-                    metadata:
-                      category: "question_answering"
-                results:
-                  - acc:
-                      value: 0.75
-                      stderr: 0.015
-                    acc_norm:
-                      value: 0.72
-                      stderr: 0.016
+                $ref: './api_types.schema.yaml#/LmEvalReport'
         '404':
           description: Report not found
           content:

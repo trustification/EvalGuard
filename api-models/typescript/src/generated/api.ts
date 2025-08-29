@@ -380,148 +380,69 @@ export interface PaginationInfo {
     'has_more': boolean;
 }
 /**
- * Schema for a report of model evaluation results.
+ * Evaluation report
  * @export
- * @interface Reportschema
+ * @interface ReportResponseItem
  */
-export interface Reportschema {
+export interface ReportResponseItem {
     /**
-     * Unique report identifier.
+     * 
+     * @type {ReportType}
+     * @memberof ReportResponseItem
+     */
+    'report_type'?: ReportType;
+    /**
+     * Unique identifier of the report
      * @type {string}
-     * @memberof Reportschema
+     * @memberof ReportResponseItem
      */
     'id'?: string;
     /**
-     * Flexible key-value metadata about the report generation.
-     * @type {{ [key: string]: string; }}
-     * @memberof Reportschema
-     */
-    'metadata'?: { [key: string]: string; };
-    /**
-     * 
-     * @type {ReportschemaContext}
-     * @memberof Reportschema
-     */
-    'context'?: ReportschemaContext;
-    /**
-     * List of tasks in the report. The keys are the task names.
-     * @type {Array<object>}
-     * @memberof Reportschema
-     */
-    'tasks'?: Array<object>;
-    /**
-     * List of results in the report. The keys are the metric names.
-     * @type {Array<object>}
-     * @memberof Reportschema
-     */
-    'results'?: Array<object>;
-}
-/**
- * Contextual information about the report generation.
- * @export
- * @interface ReportschemaContext
- */
-export interface ReportschemaContext {
-    /**
-     * Name of the model being evaluated.
+     * Name of the report
      * @type {string}
-     * @memberof ReportschemaContext
+     * @memberof ReportResponseItem
      */
     'model_name'?: string;
     /**
-     * Version of the model being evaluated.
+     * Namespace of the model
      * @type {string}
-     * @memberof ReportschemaContext
+     * @memberof ReportResponseItem
      */
-    'model_source'?: string;
+    'namespace'?: string;
     /**
-     * Git hash of the model being evaluated.
+     * Timestamp of the report creation
      * @type {string}
-     * @memberof ReportschemaContext
+     * @memberof ReportResponseItem
      */
-    'git_hash'?: string;
-    /**
-     * Timestamp of the report generation.
-     * @type {number}
-     * @memberof ReportschemaContext
-     */
-    'date'?: number;
-    /**
-     * 
-     * @type {ReportschemaContextExecution}
-     * @memberof ReportschemaContext
-     */
-    'execution'?: ReportschemaContextExecution;
-    /**
-     * 
-     * @type {ReportschemaContextTools}
-     * @memberof ReportschemaContext
-     */
-    'tools'?: ReportschemaContextTools;
+    'created_at'?: string;
 }
+
+
 /**
- * Execution information about the report generation.
+ * Type of the report
  * @export
- * @interface ReportschemaContextExecution
+ * @enum {string}
  */
-export interface ReportschemaContextExecution {
-    /**
-     * Arguments used to instantiate the model.
-     * @type {string}
-     * @memberof ReportschemaContextExecution
-     */
-    'model_args_plain'?: string;
-    /**
-     * Arguments used to instantiate the model.
-     * @type {{ [key: string]: string; }}
-     * @memberof ReportschemaContextExecution
-     */
-    'model_args_dict'?: { [key: string]: string; };
-}
+
+export const ReportType = {
+    LmEval: 'lm-eval'
+} as const;
+
+export type ReportType = typeof ReportType[keyof typeof ReportType];
+
+
 /**
- * Tools used to generate the report.
+ * Response containing a list of evaluation reports
  * @export
- * @interface ReportschemaContextTools
+ * @interface ReportsResponse
  */
-export interface ReportschemaContextTools {
+export interface ReportsResponse {
     /**
-     * 
-     * @type {ReportschemaContextToolsLmEval}
-     * @memberof ReportschemaContextTools
+     * Collection of evaluation reports
+     * @type {Array<ReportResponseItem>}
+     * @memberof ReportsResponse
      */
-    'lm_eval'?: ReportschemaContextToolsLmEval;
-    /**
-     * 
-     * @type {ReportschemaContextToolsTransformers}
-     * @memberof ReportschemaContextTools
-     */
-    'transformers'?: ReportschemaContextToolsTransformers;
-}
-/**
- * lm-eval library used to generate the report.
- * @export
- * @interface ReportschemaContextToolsLmEval
- */
-export interface ReportschemaContextToolsLmEval {
-    /**
-     * 
-     * @type {string}
-     * @memberof ReportschemaContextToolsLmEval
-     */
-    'version'?: string;
-}
-/**
- * Transformers library used to generate the report.
- * @export
- * @interface ReportschemaContextToolsTransformers
- */
-export interface ReportschemaContextToolsTransformers {
-    /**
-     * 
-     * @type {string}
-     * @memberof ReportschemaContextToolsTransformers
-     */
-    'version'?: string;
+    'reports'?: Array<ReportResponseItem>;
 }
 /**
  * Schema for a model evaluation task, based on lm-eval report data plus user-added metadata.
@@ -1356,14 +1277,22 @@ export const ReportsApiAxiosParamCreator = function (configuration?: Configurati
         /**
          * Retrieve a specific evaluation report by its unique identifier. Returns the complete report including context, tasks, and results. 
          * @summary Get evaluation report by ID
+         * @param {string} namespace Namespace of the model
+         * @param {string} modelName Name of the model
          * @param {string} reportId Unique identifier of the report
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getReport: async (reportId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getReport: async (namespace: string, modelName: string, reportId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'namespace' is not null or undefined
+            assertParamExists('getReport', 'namespace', namespace)
+            // verify required parameter 'modelName' is not null or undefined
+            assertParamExists('getReport', 'modelName', modelName)
             // verify required parameter 'reportId' is not null or undefined
             assertParamExists('getReport', 'reportId', reportId)
-            const localVarPath = `/reports/{report_id}`
+            const localVarPath = `/reports/{namespace}/{model_name}/lm-eval/{report_id}`
+                .replace(`{${"namespace"}}`, encodeURIComponent(String(namespace)))
+                .replace(`{${"model_name"}}`, encodeURIComponent(String(modelName)))
                 .replace(`{${"report_id"}}`, encodeURIComponent(String(reportId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -1375,6 +1304,59 @@ export const ReportsApiAxiosParamCreator = function (configuration?: Configurati
             const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Retrieve a list of all evaluation reports for a specific model. 
+         * @summary List evaluation reports for a model
+         * @param {string} namespace Namespace of the model
+         * @param {string} modelName Name of the model
+         * @param {ReportType} [reportType] Type of report
+         * @param {number} [limit] Maximum number of items to return
+         * @param {number} [offset] Number of items to skip for pagination
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listReports: async (namespace: string, modelName: string, reportType?: ReportType, limit?: number, offset?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'namespace' is not null or undefined
+            assertParamExists('listReports', 'namespace', namespace)
+            // verify required parameter 'modelName' is not null or undefined
+            assertParamExists('listReports', 'modelName', modelName)
+            const localVarPath = `/reports/{namespace}/{model_name}`
+                .replace(`{${"namespace"}}`, encodeURIComponent(String(namespace)))
+                .replace(`{${"model_name"}}`, encodeURIComponent(String(modelName)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (reportType !== undefined) {
+                localVarQueryParameter['report_type'] = reportType;
+            }
+
+            if (limit !== undefined) {
+                localVarQueryParameter['limit'] = limit;
+            }
+
+            if (offset !== undefined) {
+                localVarQueryParameter['offset'] = offset;
+            }
 
 
     
@@ -1400,14 +1382,33 @@ export const ReportsApiFp = function(configuration?: Configuration) {
         /**
          * Retrieve a specific evaluation report by its unique identifier. Returns the complete report including context, tasks, and results. 
          * @summary Get evaluation report by ID
+         * @param {string} namespace Namespace of the model
+         * @param {string} modelName Name of the model
          * @param {string} reportId Unique identifier of the report
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getReport(reportId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Reportschema>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.getReport(reportId, options);
+        async getReport(namespace: string, modelName: string, reportId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<object>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getReport(namespace, modelName, reportId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ReportsApi.getReport']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Retrieve a list of all evaluation reports for a specific model. 
+         * @summary List evaluation reports for a model
+         * @param {string} namespace Namespace of the model
+         * @param {string} modelName Name of the model
+         * @param {ReportType} [reportType] Type of report
+         * @param {number} [limit] Maximum number of items to return
+         * @param {number} [offset] Number of items to skip for pagination
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listReports(namespace: string, modelName: string, reportType?: ReportType, limit?: number, offset?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ReportsResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listReports(namespace, modelName, reportType, limit, offset, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ReportsApi.listReports']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
@@ -1423,12 +1424,28 @@ export const ReportsApiFactory = function (configuration?: Configuration, basePa
         /**
          * Retrieve a specific evaluation report by its unique identifier. Returns the complete report including context, tasks, and results. 
          * @summary Get evaluation report by ID
+         * @param {string} namespace Namespace of the model
+         * @param {string} modelName Name of the model
          * @param {string} reportId Unique identifier of the report
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getReport(reportId: string, options?: RawAxiosRequestConfig): AxiosPromise<Reportschema> {
-            return localVarFp.getReport(reportId, options).then((request) => request(axios, basePath));
+        getReport(namespace: string, modelName: string, reportId: string, options?: RawAxiosRequestConfig): AxiosPromise<object> {
+            return localVarFp.getReport(namespace, modelName, reportId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Retrieve a list of all evaluation reports for a specific model. 
+         * @summary List evaluation reports for a model
+         * @param {string} namespace Namespace of the model
+         * @param {string} modelName Name of the model
+         * @param {ReportType} [reportType] Type of report
+         * @param {number} [limit] Maximum number of items to return
+         * @param {number} [offset] Number of items to skip for pagination
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listReports(namespace: string, modelName: string, reportType?: ReportType, limit?: number, offset?: number, options?: RawAxiosRequestConfig): AxiosPromise<ReportsResponse> {
+            return localVarFp.listReports(namespace, modelName, reportType, limit, offset, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -1443,13 +1460,31 @@ export class ReportsApi extends BaseAPI {
     /**
      * Retrieve a specific evaluation report by its unique identifier. Returns the complete report including context, tasks, and results. 
      * @summary Get evaluation report by ID
+     * @param {string} namespace Namespace of the model
+     * @param {string} modelName Name of the model
      * @param {string} reportId Unique identifier of the report
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ReportsApi
      */
-    public getReport(reportId: string, options?: RawAxiosRequestConfig) {
-        return ReportsApiFp(this.configuration).getReport(reportId, options).then((request) => request(this.axios, this.basePath));
+    public getReport(namespace: string, modelName: string, reportId: string, options?: RawAxiosRequestConfig) {
+        return ReportsApiFp(this.configuration).getReport(namespace, modelName, reportId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Retrieve a list of all evaluation reports for a specific model. 
+     * @summary List evaluation reports for a model
+     * @param {string} namespace Namespace of the model
+     * @param {string} modelName Name of the model
+     * @param {ReportType} [reportType] Type of report
+     * @param {number} [limit] Maximum number of items to return
+     * @param {number} [offset] Number of items to skip for pagination
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ReportsApi
+     */
+    public listReports(namespace: string, modelName: string, reportType?: ReportType, limit?: number, offset?: number, options?: RawAxiosRequestConfig) {
+        return ReportsApiFp(this.configuration).listReports(namespace, modelName, reportType, limit, offset, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

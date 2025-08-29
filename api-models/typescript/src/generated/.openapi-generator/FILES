@@ -22,13 +22,10 @@ docs/ModelInfoschemaReferenceLinksInner.md
 docs/ModelsApi.md
 docs/ModelsInfoResponse.md
 docs/PaginationInfo.md
+docs/ReportResponseItem.md
+docs/ReportType.md
 docs/ReportsApi.md
-docs/Reportschema.md
-docs/ReportschemaContext.md
-docs/ReportschemaContextExecution.md
-docs/ReportschemaContextTools.md
-docs/ReportschemaContextToolsLmEval.md
-docs/ReportschemaContextToolsTransformers.md
+docs/ReportsResponse.md
 docs/TaskDefinitionschema.md
 docs/TasksApi.md
 docs/TasksResponse.md

@@ -2,7 +2,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
 import { glob } from 'glob';
-// import { Task } from '@trustification/evalguard-api-model';
 
 // Local types for generating local YAML files
 interface Task {
@@ -16,6 +15,16 @@ interface Metric {
   id: string;
   name: string;
   direction: 'higher_is_better' | 'lower_is_better';
+}
+
+interface ModelInfo {
+  id: string;
+  name: string;
+  namespace: string;
+  reference_links?: Array<{
+    name: string;
+    url: string;
+  }>;
 }
 
 interface GenerateOptions {
@@ -102,6 +111,76 @@ function loadExistingMetric(metricId: string, metricsDir: string): Metric | null
   return null;
 }
 
+function extractReportInfo(reportPath: string): { namespace: string; modelName: string; reportName: string } | null {
+  // Extract namespace, model name, and report name from path like:
+  // reports/namespace/model-name/lm-eval/arbitrary-report-name.json
+  const relativePath = path.relative(process.cwd(), reportPath);
+  const pathParts = relativePath.split(path.sep);
+  
+  // Look for the pattern: reports/namespace/model-name/lm-eval/*.json
+  const reportsIndex = pathParts.indexOf('reports');
+  if (reportsIndex === -1 || reportsIndex + 3 >= pathParts.length) {
+    return null;
+  }
+  
+  const namespace = pathParts[reportsIndex + 1];
+  const modelName = pathParts[reportsIndex + 2];
+  
+  // Verify the structure is correct
+  if (pathParts[reportsIndex + 3] !== 'lm-eval') {
+    return null;
+  }
+  
+  // Get the report filename (without extension)
+  const reportFileName = pathParts[pathParts.length - 1];
+  const reportName = path.basename(reportFileName, '.json');
+  
+  return { namespace, modelName, reportName };
+}
+
+async function generateModelInfo(namespace: string, modelName: string): Promise<ModelInfo> {
+  // Create a model ID by combining namespace and model name
+  const id = `${namespace}/${modelName}`;
+
+  const modelInfo: ModelInfo = {
+    id,
+    name: modelName,
+    namespace
+  };
+
+  // Add reference link to Hugging Face
+  modelInfo.reference_links = [
+    {
+      name: 'Hugging Face',
+      url: `https://huggingface.co/${id}`
+    }
+  ];
+
+  return modelInfo;
+}
+
+function loadExistingModelInfo(namespace: string, modelName: string, modelsDir: string): ModelInfo | null {
+  const modelFile = path.join(modelsDir, namespace, `${modelName}.yaml`);
+  if (fs.existsSync(modelFile)) {
+    try {
+      const content = fs.readFileSync(modelFile, 'utf-8');
+      return yaml.load(content) as ModelInfo;
+    } catch (error) {
+      console.warn(`⚠️  Could not parse existing model file: ${modelFile}`);
+      return null;
+    }
+  }
+  return null;
+}
+
+interface HuggingFaceModelInfo {
+  id: string;
+  description?: string;
+  tags?: string[];
+  author?: string;
+  lastModified?: string;
+}
+
 export async function generateCommand(options: GenerateOptions): Promise<void> {
   try {
     console.log('🔧 Generating tasks and metrics from lm-eval report(s)...');
@@ -109,7 +188,7 @@ export async function generateCommand(options: GenerateOptions): Promise<void> {
     let reportPaths: string[] = [];
     
     if (options.file) {
-      // Single file mode
+      // Single file
       const reportPath = path.resolve(options.file);
       if (!fs.existsSync(reportPath)) {
         console.error(`❌ Report file not found: ${reportPath}`);
@@ -117,23 +196,23 @@ export async function generateCommand(options: GenerateOptions): Promise<void> {
       }
       reportPaths = [reportPath];
     } else if (options.folder) {
-      // Folder mode - find all JSON files recursively
       const folderPath = path.resolve(options.folder);
       if (!fs.existsSync(folderPath)) {
         console.error(`❌ Folder not found: ${folderPath}`);
         process.exit(1);
       }
       
-      const pattern = path.join(folderPath, '**/*.json');
+      const pattern = path.join(folderPath, '**/lm-eval/*.json');
       const files = await glob(pattern, { nodir: true });
       
       if (files.length === 0) {
-        console.error(`❌ No JSON files found in folder: ${folderPath}`);
+        console.error(`❌ No JSON files found in lm-eval folders: ${folderPath}`);
+        console.error(`   Expected structure: reports/namespace/model-name/lm-eval/*.json`);
         process.exit(1);
       }
       
       reportPaths = files;
-      console.log(`📁 Found ${files.length} JSON files in folder`);
+      console.log(`📁 Found ${files.length} JSON files in lm-eval folders`);
     } else {
       console.error('❌ Either --file or --folder option is required');
       process.exit(1);
@@ -141,12 +220,21 @@ export async function generateCommand(options: GenerateOptions): Promise<void> {
     
     const allTasks: Task[] = [];
     const allMetrics: Metric[] = [];
+    const allModels: ModelInfo[] = [];
     const seenMetrics = new Set<string>();
     const seenTasks = new Set<string>();
+    const seenModels = new Set<string>();
     
     // Process each report file
     for (const reportPath of reportPaths) {
-      console.log(`\n📄 Processing: ${path.relative(process.cwd(), reportPath)}`);
+      const reportInfo = extractReportInfo(reportPath);
+      const relativePath = path.relative(process.cwd(), reportPath);
+      
+      if (reportInfo) {
+        console.log(`\n📄 Processing: ${reportInfo.namespace}/${reportInfo.modelName}/${reportInfo.reportName} (${relativePath})`);
+      } else {
+        console.log(`\n📄 Processing: ${relativePath}`);
+      }
       
       try {
         const { tasks, metrics } = await processReport(reportPath);
@@ -166,7 +254,21 @@ export async function generateCommand(options: GenerateOptions): Promise<void> {
           }
         }
         
-        console.log(`✅ Processed: ${tasks.length} tasks, ${metrics.length} metrics`);
+        // Collect model info if we have report info
+        if (reportInfo) {
+          const modelId = `${reportInfo.namespace}/${reportInfo.modelName}`;
+          if (!seenModels.has(modelId)) {
+            const modelInfo = await generateModelInfo(reportInfo.namespace, reportInfo.modelName);
+            allModels.push(modelInfo);
+            seenModels.add(modelId);
+          }
+        }
+        
+        if (reportInfo) {
+          console.log(`✅ Processed: ${tasks.length} tasks, ${metrics.length} metrics from ${reportInfo.namespace}/${reportInfo.modelName}/${reportInfo.reportName}`);
+        } else {
+          console.log(`✅ Processed: ${tasks.length} tasks, ${metrics.length} metrics`);
+        }
       } catch (error) {
         console.error(`⚠️  Error processing ${reportPath}:`, error);
         // Continue with other files
@@ -177,6 +279,7 @@ export async function generateCommand(options: GenerateOptions): Promise<void> {
     const configDir = path.resolve(__dirname, '../../../config');
     const tasksDir = path.join(configDir, 'tasks');
     const metricsDir = path.join(configDir, 'metrics');
+    const modelsDir = path.join(configDir, 'models');
     
     // Ensure directories exist
     if (!fs.existsSync(tasksDir)) {
@@ -185,9 +288,13 @@ export async function generateCommand(options: GenerateOptions): Promise<void> {
     if (!fs.existsSync(metricsDir)) {
       fs.mkdirSync(metricsDir, { recursive: true });
     }
+    if (!fs.existsSync(modelsDir)) {
+      fs.mkdirSync(modelsDir, { recursive: true });
+    }
     
     let newTasksCount = 0;
     let newMetricsCount = 0;
+    let newModelsCount = 0;
     let skippedMetricsCount = 0;
     
     // Write metrics
@@ -222,16 +329,38 @@ export async function generateCommand(options: GenerateOptions): Promise<void> {
       }
     }
     
+    // Write model info files
+    for (const model of allModels) {
+      const namespaceDir = path.join(modelsDir, model.namespace);
+      if (!fs.existsSync(namespaceDir)) {
+        fs.mkdirSync(namespaceDir, { recursive: true });
+      }
+      
+      const modelFile = path.join(namespaceDir, `${model.name}.yaml`);
+      const existingModel = loadExistingModelInfo(model.namespace, model.name, modelsDir);
+      
+      if (existingModel) {
+        console.log(`⏭️  Skipped existing model: ${modelFile}`);
+      } else {
+        // Create new model info
+        const modelYaml = yaml.dump(model);
+        fs.writeFileSync(modelFile, modelYaml);
+        console.log(`✅ Generated new model: ${modelFile}`);
+        newModelsCount++;
+      }
+    }
+    
     console.log(`\n📊 Summary:`);
     console.log(`✅ Generated ${newTasksCount} new tasks`);
     console.log(`✅ Generated ${newMetricsCount} new metrics`);
+    console.log(`✅ Generated ${newModelsCount} new models`);
     console.log(`⏭️  Skipped ${skippedMetricsCount} existing metrics`);
     console.log(`✅ Processed ${reportPaths.length} report file(s)`);
-    console.log(`\n⚠️  Note: New tasks and metrics have minimal data to ensure validation fails.`);
+    console.log(`\n⚠️  Note: New tasks, metrics, and models have minimal data to ensure validation fails.`);
     console.log(`   Users must add descriptions, categories, and other required fields.`);
     
   } catch (error) {
-    console.error('❌ Error generating tasks and metrics:', error);
+    console.error('❌ Error generating config files from LM Eval report(s):', error);
     process.exit(1);
   }
 } 

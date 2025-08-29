@@ -11,6 +11,7 @@ interface ValidationContext {
   metricIds: Set<string>; // track unique metric IDs
   thresholdTasks: Set<string>; // track unique task IDs in thresholds
   guardrailIds: Set<string>; // track unique guardrail IDs
+  modelIds: Set<string>; // track unique model IDs
   validators: any;
 }
 
@@ -42,7 +43,8 @@ export async function validateCommand(options: ValidateOptions): Promise<void> {
       tasks: loadVersionedSchema(schemasDir, 'task_definition'),
       metrics: loadVersionedSchema(schemasDir, 'metric_definition'),
       thresholds: loadVersionedSchema(schemasDir, 'threshold'),
-      guardrails: loadVersionedSchema(schemasDir, 'guardrail')
+      guardrails: loadVersionedSchema(schemasDir, 'guardrail'),
+      models: loadVersionedSchema(schemasDir, 'model_info')
     };
     
     // Compile validators
@@ -50,7 +52,8 @@ export async function validateCommand(options: ValidateOptions): Promise<void> {
       tasks: ajv.compile(schemas.tasks),
       metrics: ajv.compile(schemas.metrics),
       thresholds: ajv.compile(schemas.thresholds),
-      guardrails: ajv.compile(schemas.guardrails)
+      guardrails: ajv.compile(schemas.guardrails),
+      models: ajv.compile(schemas.models)
     };
     
     const context: ValidationContext = {
@@ -58,6 +61,7 @@ export async function validateCommand(options: ValidateOptions): Promise<void> {
       metricIds: new Set<string>(),
       thresholdTasks: new Set<string>(),
       guardrailIds: new Set<string>(),
+      modelIds: new Set<string>(),
       validators
     };
     
@@ -93,8 +97,8 @@ async function validateSingleFile(filePath: string, context: ValidationContext):
 
 async function validateSpecificType(type: string, configDir: string, context: ValidationContext): Promise<ValidationResult[]> {
   const normalizedType = type.toLowerCase();
-  if (!['metrics', 'tasks', 'thresholds', 'guardrails'].includes(normalizedType)) {
-    console.error(`❌ Invalid type: ${type}. Must be one of: metrics, tasks, thresholds, guardrails`);
+  if (!['metrics', 'tasks', 'thresholds', 'guardrails', 'models'].includes(normalizedType)) {
+    console.error(`❌ Invalid type: ${type}. Must be one of: metrics, tasks, thresholds, guardrails, models`);
     process.exit(1);
   }
   
@@ -126,7 +130,7 @@ async function validateAllTypes(configDir: string, context: ValidationContext): 
   const results: ValidationResult[] = [];
   
   // Validate all types and check for uniqueness
-  for (const type of ['metrics', 'tasks', 'thresholds', 'guardrails'] as const) {
+  for (const type of ['metrics', 'tasks', 'thresholds', 'guardrails', 'models'] as const) {
     const typeDir = path.join(configDir, type);
     if (!fs.existsSync(typeDir)) {
       console.warn(`⚠️  Directory not found: ${typeDir}`);
@@ -159,6 +163,8 @@ function validateUniqueness(result: ValidationResult, type: string, context: Val
     validateThresholdUniqueness(result, context);
   } else if (type === 'guardrails') {
     validateGuardrailUniqueness(result, context);
+  } else if (type === 'models') {
+    validateModelUniqueness(result, context);
   }
 }
 
@@ -206,6 +212,18 @@ function validateGuardrailUniqueness(result: ValidationResult, context: Validati
       result.errors.push(`Duplicate guardrail ID: '${guardrailId}'`);
     } else {
       context.guardrailIds.add(guardrailId);
+    }
+  }
+}
+
+function validateModelUniqueness(result: ValidationResult, context: ValidationContext): void {
+  const modelId = result.data.id;
+  if (modelId) {
+    if (context.modelIds.has(modelId)) {
+      result.valid = false;
+      result.errors.push(`Duplicate model ID: '${modelId}'`);
+    } else {
+      context.modelIds.add(modelId);
     }
   }
 }
