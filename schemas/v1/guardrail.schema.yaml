@@ -22,24 +22,7 @@ properties:
     description: >
       Specifies what the guardrail applies to: tasks, metrics, and/or specific models.
     items:
-      type: object
-      required:
-        - task
-        - metrics
-      properties:
-        task:
-          type: string
-          description: Task identifier to which the guardrail applies.
-        metrics:
-          type: array
-          description: List of metric identifiers to which the guardrail applies
-          items:
-            type: string
-          minItems: 1
-        model:
-          type: string
-          description: Model identifier this guardrail is scoped to (Optional)
-      additionalProperties: false
+      $ref: "#/definitions/GuardrailTarget"
   scope:
     type: string
     description: >
@@ -69,3 +52,23 @@ required:
   - scope
   - instructions
 additionalProperties: false 
+definitions:
+  GuardrailTarget:
+    type: object
+    required:
+      - task
+      - metrics
+    properties:
+      task:
+        type: string
+        description: Task identifier to which the guardrail applies.
+      metrics:
+        type: array
+        description: List of metric identifiers to which the guardrail applies
+        items:
+          type: string
+        minItems: 1
+      model:
+        type: string
+        description: Model identifier this guardrail is scoped to (Optional)
+    additionalProperties: false

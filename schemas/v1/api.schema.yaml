@@ -9,7 +9,7 @@ info:
     such as model name, evaluation date, or task type.
   version: 1.0.0
   contact:
-    name: EvalGuard Team
+    name: Trustification - EvalGuard Team
     url: https://github.com/trustification/evalguard
   license:
     name: MIT
@@ -22,95 +22,161 @@ servers:
     description: Development server
 
 paths:
-  /reports:
-    post:
-      summary: List evaluation reports
+  /model-cards:
+    get:
+      summary: List model cards
       description: |
-        Retrieve a list of evaluation reports with flexible filtering.
+        Retrieve a list of model cards with flexible filtering.
         Supports filtering by model name, evaluation date range, task type, metrics, dtype, and other criteria.
-      operationId: listReports
+      operationId: listModelCards
       tags:
-        - Reports
+        - Model Cards
       parameters:
+        - name: model_name  
+          in: query
+          description: Filter by model name
+          required: true
+          schema:
+            type: string
+          example: "meta-llama/Llama-3.1-8B-Instruct"
+        - name: policy_id
+          in: query
+          description: Filter by policy ID
+          required: false
+          schema:
+            type: string
+          example: "default"
+        - name: tasks
+          in: query
+          description: Filter by tasks
+          required: false
+          schema:
+            type: string
+          example: "truthfulqa_mc1"
+        - name: metrics
+          in: query
+          description: Filter by metrics
+          required: false
+          schema:
+            type: string
+          example: "acc"
         - name: limit
           in: query
-          description: Maximum number of reports to return
+          description: Maximum number of items to return
           required: false
           schema:
             type: integer
             minimum: 1
+            maximum: 100
             default: 20
           example: 50
         - name: offset
           in: query
-          description: Number of reports to skip for pagination
+          description: Number of items to skip for pagination
           required: false
           schema:
             type: integer
             minimum: 0
             default: 0
           example: 0
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: './report_query.schema.yaml'
-            example:
-              query:
-                model_name: "meta-llama/Llama-3.1-8B-Instruct"
-                tasks: ["truthfulqa_mc1"]
-                metrics: ["acc"]
-                report_context:
-                  dtype: "fp16"
-
       responses:
         '200':
-          description: List of evaluation reports
+          description: List of model cards
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ReportList'
+                type: object
+                description: Response containing a list of model cards
+                $ref: './api_types.schema.yaml#/ModelCardsResponse'
               example:
-                reports:
-                  - id: "llama-3.1-8b-instruct-eval-2025-01-15"
-                    metadata:
-                      evaluation_date: "2025-01-15"
-                      evaluator: "lm-eval-harness"
-                    context:
-                      model_name: "Llama-3.1-8B-Instruct"
-                      model_source: "meta-llama"
-                      date: 1705312800
+                model_cards:
+                  - model:
+                      id: "meta-llama/Llama-3.1-8B-Instruct"
+                      name: "Llama-3.1-8B-Instruct"
+                      namespace: "meta-llama"
+                      description: "An 8 billion parameter instruction-tuned language model from Meta"
+                      aliases:
+                        - "Meta-Llama-3.1-8B-Instruct"
+                      reference_links:
+                        - name: "Hugging Face"
+                          url: "https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct"
+                        - name: "ArXiv"
+                          url: "https://arxiv.org/abs/2308.12950"
                     tasks:
-                      - task_ref: "truthfulqa_mc1"
-                        dataset_name: "truthful_qa"
-                        n_samples:
-                          original: 817
-                          effective: 817
-                    results:
-                      - acc:
-                          value: 0.75
-                          stderr: 0.015
-                        acc_norm:
-                          value: 0.72
-                          stderr: 0.016
-                pagination:
-                  total: 150
-                  limit: 20
-                  offset: 0
-                  has_more: true
+                      truthfulqa_mc1:
+                        task:
+                          id: "truthfulqa_mc1"
+                          name: "TruthfulQA Multiple Choice"
+                          description: "Evaluates model's ability to answer questions truthfully"
+                          category: "question_answering"
+                          tags:
+                            - "truthfulness"
+                            - "multiple_choice"
+                          languages:
+                            - "en"
+                        metrics:
+                          - metric:
+                              id: "acc"
+                              name: "Accuracy"
+                              description: "Standard accuracy metric"
+                              type: "percentage"
+                              direction: "higher_is_better"
+                              tags:
+                                - "accuracy"
+                            report_ref:
+                              id: "llama-3.1-8b-instruct-eval-2025-01-15"
+                              type: "lm-eval-report"
+                            value: 0.75
+                            stderr: 0.015
+                            thresholds:
+                              - impact: high
+                                max: 0.5
+                              - impact: moderate
+                                min: 0.5
+                                max: 0.6
+                              - impact: low
+                                min: 0.6
+                                max: 0.7
+                          - metric:
+                              id: "acc_norm"
+                              name: "Normalized Accuracy"
+                              description: "Accuracy normalized by human performance"
+                              type: "percentage"
+                              direction: "higher_is_better"
+                              tags:
+                                - "accuracy"
+                                - "normalized"
+                            report_ref:
+                              id: "llama-3.1-8b-instruct-eval-2025-01-15"
+                              type: "lm-eval-report"
+                            value: 0.72
+                            stderr: 0.016
+                            thresholds:
+                              - impact: high
+                                max: 0.5
+                              - impact: moderate
+                                min: 0.5
+                                max: 0.6
+                              - impact: low
+                                min: 0.6
+                                max: 0.7
+                    guardrails:
+                      - id: "truthfulness-check"
+                        name: "Truthfulness Verification"
+                        description: "Ensures model responses are truthful and avoid hallucination"
+                        target:
+                          tasks:
+                            - "truthfulqa_mc1"
+                          metrics:
+                            - "acc"
+                        scope: "output"
+                        instructions: "Verify that model responses are factually accurate and do not contain false information"
         '400':
           description: Invalid query parameters
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+                $ref: './api_types.schema.yaml#/Error'
 
   /guardrails:
     get:
@@ -139,7 +205,7 @@ paths:
           example: "acc,acc_norm,pct_stereotype"
         - name: limit
           in: query
-          description: Maximum number of guardrails to return
+          description: Maximum number of items to return
           required: false
           schema:
             type: integer
@@ -149,7 +215,7 @@ paths:
           example: 50
         - name: offset
           in: query
-          description: Number of guardrails to skip for pagination
+          description: Number of items to skip for pagination
           required: false
           schema:
             type: integer
@@ -163,13 +229,8 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  guardrails:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Guardrail'
-                  pagination:
-                    $ref: '#/components/schemas/PaginationInfo'
+                description: Response containing a list of available guardrails
+                $ref: './api_types.schema.yaml#/GuardrailsResponse'
               example:
                 guardrails:
                   - id: "truthfulness-check"
@@ -192,13 +253,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: './api_types.schema.yaml#/Error'
         '500':
           description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: './api_types.schema.yaml#/Error'
 
   /guardrails/{guardrail_id}:
     get:
@@ -223,7 +284,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Guardrail'
+                $ref: './guardrail.schema.yaml'
               example:
                 id: "truthfulness-check"
                 name: "Truthfulness Verification"
@@ -247,15 +308,84 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: './api_types.schema.yaml#/Error'
         '500':
           description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: './api_types.schema.yaml#/Error'
 
-  /reports/{report_id}:
+  /reports/{namespace}/{model_name}:
+    get:
+      summary: List evaluation reports for a model
+      description: |
+        Retrieve a list of all evaluation reports for a specific model.
+      operationId: listReports
+      tags:
+        - Reports
+      parameters:
+        - name: namespace
+          in: path
+          description: Namespace of the model
+          required: true
+          schema:
+            type: string
+          example: "meta-llama"
+        - name: model_name
+          in: path
+          description: Name of the model
+          required: true
+          schema:
+            type: string
+          example: "Llama-3.1-8B-Instruct"
+        - name: report_type
+          in: query
+          description: Type of report
+          required: false
+          schema:
+            $ref: './api_types.schema.yaml#/ReportType'
+          example: "lm-eval"
+        - name: limit
+          in: query
+          description: Maximum number of items to return
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          example: 50
+        - name: offset
+          in: query
+          description: Number of items to skip for pagination
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          example: 0
+      responses:
+        '200':
+          description: List of evaluation reports
+          content:
+            application/json:
+              schema:
+                $ref: './api_types.schema.yaml#/ReportsResponse'
+        '404':
+          description: Model not found
+          content:
+            application/json:
+              schema:
+                $ref: './api_types.schema.yaml#/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: './api_types.schema.yaml#/Error'
+
+  /reports/{namespace}/{model_name}/lm-eval/{report_id}:
     get:
       summary: Get evaluation report by ID
       description: |
@@ -263,6 +393,20 @@ paths:
         Returns the complete report including context, tasks, and results.
       operationId: getReport
       parameters:
+        - name: namespace
+          in: path
+          description: Namespace of the model
+          required: true
+          schema:
+            type: string
+          example: "meta-llama"
+        - name: model_name
+          in: path
+          description: Name of the model
+          required: true
+          schema:
+            type: string
+          example: "Llama-3.1-8B-Instruct"
         - name: report_id
           in: path
           description: Unique identifier of the report
@@ -278,129 +422,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Report'
-              example:
-                id: "llama-3.1-8b-instruct-eval-2025-01-15"
-                metadata:
-                  evaluation_date: "2025-01-15"
-                  evaluator: "lm-eval-harness"
-                  environment: "production"
-                context:
-                  model_name: "Llama-3.1-8B-Instruct"
-                  model_source: "meta-llama"
-                  git_hash: "abc123def456"
-                  date: 1705312800
-                  execution:
-                    model_args_plain: "--model-path /path/to/model"
-                    model_args_dict:
-                      model_path: "/path/to/model"
-                      device: "cuda"
-                      precision: "fp16"
-                  tools:
-                    lm_eval:
-                      version: "0.4.0"
-                    transformers:
-                      version: "4.35.0"
-                tasks:
-                  - task_ref: "truthfulqa_mc1"
-                    dataset_path: "/path/to/dataset"
-                    dataset_name: "truthful_qa"
-                    output_type: "multiple_choice"
-                    repeats: 1
-                    should_decontaminate: false
-                    unsafe_code: false
-                    n_shot: 0
-                    n_samples:
-                      original: 817
-                      effective: 817
-                    version: 1
-                    metadata:
-                      category: "question_answering"
-                results:
-                  - acc:
-                      value: 0.75
-                      stderr: 0.015
-                    acc_norm:
-                      value: 0.72
-                      stderr: 0.016
+                $ref: './api_types.schema.yaml#/LmEvalReport'
         '404':
           description: Report not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: './api_types.schema.yaml#/Error'
         '500':
           description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-
-  /reports/{report_id}/metrics:
-    get:
-      summary: Get metrics for a specific report
-      description: |
-        Retrieve only the metrics/results for a specific evaluation report.
-        Useful when you only need the performance data without the full context.
-      operationId: getReportMetrics
-      tags:
-        - Reports
-      parameters:
-        - name: report_id
-          in: path
-          description: Unique identifier of the report
-          required: true
-          schema:
-            type: string
-          example: "llama-3.1-8b-instruct-eval-2025-01-15"
-        - name: metric
-          in: query
-          description: Filter to specific metric(s)
-          required: false
-          schema:
-            type: string
-          example: "acc"
-      responses:
-        '200':
-          description: Report metrics
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  report_id:
-                    type: string
-                  metrics:
-                    type: array
-                    items:
-                      type: object
-                      additionalProperties:
-                        type: object
-                        properties:
-                          value:
-                            type: number
-                            description: The metric value
-                          stderr:
-                            type: number
-                            description: Standard error of the metric
-                        required:
-                          - value
-                        additionalProperties: false
-              example:
-                report_id: "llama-3.1-8b-instruct-eval-2025-01-15"
-                metrics:
-                  - acc:
-                      value: 0.75
-                      stderr: 0.015
-                    acc_norm:
-                      value: 0.72
-                      stderr: 0.016
-        '404':
-          description: Report not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+                $ref: './api_types.schema.yaml#/Error'
 
   /models:
     get:
@@ -419,28 +453,79 @@ paths:
           schema:
             type: string
           example: "meta-llama"
+        - name: limit
+          in: query
+          description: Maximum number of items to return
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          example: 50
+        - name: offset
+          in: query
+          description: Number of items to skip for pagination
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          example: 0
       responses:
         '200':
           description: List of models
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  models:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ModelInfo'
+                $ref: './api_types.schema.yaml#/ModelsInfoResponse'
               example:
                 models:
                   - name: "Llama-3.1-8B-Instruct"
-                    source: "meta-llama"
-                    report_count: 5
-                    latest_evaluation: "2025-01-15T10:30:00Z"
+                    namespace: "meta-llama"
+                    aliases:
+                      - "Meta-Llama-3.1-8B-Instruct"
+                    reference_links:
+                      - name: "Hugging Face"
+                        url: "https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct"
                   - name: "phi-2"
                     source: "microsoft"
-                    report_count: 3
-                    latest_evaluation: "2025-01-10T14:20:00Z"
+  
+  /models/{model_id}:
+    get:
+      summary: Get model by ID
+      description: |
+        Retrieve a specific model by its unique identifier.
+      operationId: getModel
+      tags:
+        - Models
+      parameters:
+        - name: model_id
+          in: path
+          description: Unique identifier of the model
+          required: true
+          schema:
+            type: string
+          example: "meta-llama/Llama-3.1-8B-Instruct"
+      responses:
+        '200':
+          description: Model details
+          content:
+            application/json:
+              schema:
+                $ref: './model_info.schema.yaml'
+        '404':
+          description: Model not found
+          content:
+            application/json:
+              schema:
+                $ref: './api_types.schema.yaml#/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: './api_types.schema.yaml#/Error'
 
   /tasks:
     get:
@@ -451,164 +536,264 @@ paths:
       operationId: listTasks
       tags:
         - Tasks
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of items to return
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          example: 50
+        - name: offset
+          in: query
+          description: Number of items to skip for pagination
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          example: 0
       responses:
         '200':
           description: List of tasks
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  tasks:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Task'
+                $ref: './api_types.schema.yaml#/TasksResponse'
               example:
                 tasks:
                   - id: "truthfulqa_mc1"
                     name: "TruthfulQA Multiple Choice"
                     description: "Evaluates model's ability to answer questions truthfully"
                     category: "question_answering"
-                    metrics:
-                      - "acc"
-                      - "acc_norm"
                     tags:
                       - "truthfulness"
                       - "multiple_choice"
                     languages:
                       - "en"
 
-  /thresholds:
+  /tasks/{task_id}:
     get:
-      summary: Get thresholds for multiple tasks and metrics
+      summary: Get task by ID
       description: |
-        Retrieve performance thresholds for multiple tasks and metrics in a single request.
-        Useful for interpreting metric results across multiple tasks in a report.
-        Supports filtering by specific tasks and metrics.
-      operationId: getThresholds
+        Retrieve a specific task by its unique identifier.
+      operationId: getTask
       tags:
-        - Thresholds
+        - Tasks
       parameters:
-        - name: tasks
-          in: query
-          description: Comma-separated list of task IDs to get thresholds for
+        - name: task_id
+          in: path
+          description: Unique identifier of the task
           required: true
           schema:
             type: string
-          example: "truthfulqa_mc1,winogender_schemas"
-        - name: metrics
-          in: query
-          description: Comma-separated list of metric IDs to filter by (optional)
-          required: false
-          schema:
-            type: string
-          example: "acc,acc_norm,pct_stereotype"
+          example: "truthfulqa_mc1"
       responses:
         '200':
-          description: Thresholds for the specified tasks and metrics
+          description: Task details
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  thresholds:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Threshold'
-              example:
-                thresholds:
-                  - task: "truthfulqa_mc1"
-                    thresholds:
-                      acc:
-                        - label: "Poor"
-                          max: 0.5
-                          interpretation: "Performance below acceptable threshold"
-                        - label: "Good"
-                          min: 0.5
-                          max: 0.8
-                          interpretation: "Acceptable performance"
-                        - label: "Excellent"
-                          min: 0.8
-                          interpretation: "Outstanding performance"
-                      acc_norm:
-                        - label: "Poor"
-                          max: 0.5
-                        - label: "Good"
-                          min: 0.5
-                          max: 0.8
-                        - label: "Excellent"
-                          min: 0.8
-                  - task: "winogender_schemas"
-                    thresholds:
-                      acc:
-                        - label: "Poor"
-                          max: 0.6
-                          interpretation: "High gender bias in coreference"
-                        - label: "Acceptable"
-                          min: 0.6
-                          max: 0.8
-                          interpretation: "Moderate gender bias"
-                        - label: "Good"
-                          min: 0.8
-                          interpretation: "Low gender bias"
-                      pct_stereotype:
-                        - label: "High Bias"
-                          min: 0.7
-                          interpretation: "Strong gender stereotype following"
-                        - label: "Moderate Bias"
-                          min: 0.4
-                          max: 0.7
-                          interpretation: "Moderate gender stereotype following"
-                        - label: "Low Bias"
-                          max: 0.4
-                          interpretation: "Minimal gender stereotype following"
-        '400':
-          description: Invalid parameters (missing tasks or invalid task/metric names)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+                $ref: './task_definition.schema.yaml'
         '404':
-          description: Thresholds not found for one or more specified tasks
+          description: Task not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: './api_types.schema.yaml#/Error'
         '500':
           description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: './api_types.schema.yaml#/Error'
 
-components:
-  schemas:
-    Report:
-      $ref: './report.schema.yaml'
-
-    ReportList:
-      $ref: './report_list.schema.yaml'
-
-    PaginationInfo:
-      $ref: './pagination_info.schema.yaml'
-
-    ModelInfo:
-      $ref: './model_info.schema.yaml'
-
-    Task:
-      $ref: './task.schema.yaml'
-
-    Threshold:
-      $ref: './threshold.schema.yaml'
-
-    Guardrail:
-      $ref: './guardrail.schema.yaml'
-
-    ReportQuery:
-      $ref: './report_query.schema.yaml'
-
-    Error:
-      $ref: './error.schema.yaml'
+  /metrics:
+    get:
+      summary: List available metrics
+      description: |
+        Retrieve a list of all metrics that have evaluation reports in the system.
+        Useful for building metric selection interfaces.
+      operationId: listMetrics
+      tags:
+        - Metrics
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of items to return
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          example: 50
+        - name: offset
+          in: query
+          description: Number of items to skip for pagination
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: List of metrics
+          content:
+            application/json:
+              schema:
+                $ref: './api_types.schema.yaml#/MetricsResponse'
+              example:
+                metrics:
+                  - id: "acc"
+                    name: "Accuracy"
+                    description: "Percentage of correct predictions"
+                    type: "percentage"
+                    direction: "higher_is_better"
+                    tags:
+                      - "accuracy"
+                      - "performance"
+                  - id: "acc_norm"
+                    name: "Normalized Accuracy"
+                    description: "Accuracy normalized by human performance"
+                    type: "percentage"
+                    direction: "higher_is_better"
+                    tags:
+                      - "accuracy"
+                      - "normalized"
+                  - id: "pct_stereotype"
+                    name: "Percentage of Stereotypes"
+                    description: "Percentage of stereotypes present in the results"
+                    type: "percentage"
+                    direction: "lower_is_better"
+                    tags:
+                      - "stereotype"
+  
+  /metrics/{metric_id}:
+    get:
+      summary: Get metric by ID
+      description: |
+        Retrieve a specific metric by its unique identifier.
+      operationId: getMetric
+      tags:
+        - Metrics
+      parameters:
+        - name: metric_id
+          in: path
+          description: Unique identifier of the metric
+          required: true
+          schema:
+            type: string
+          example: "acc"
+      responses:
+        '200':
+          description: Metric details
+          content:
+            application/json:
+              schema:
+                $ref: './metric_definition.schema.yaml'
+        '404':
+          description: Metric not found
+          content:
+            application/json:
+              schema:
+                $ref: './api_types.schema.yaml#/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: './api_types.schema.yaml#/Error'
+  /policies:
+    get:
+      summary: List available policies
+      description: |
+        Retrieve a list of all policies available in the system.
+      operationId: listPolicies
+      tags:
+        - Policies
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of items to return
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          example: 50
+        - name: offset
+          in: query
+          description: Number of items to skip for pagination
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          example: 0
+      responses:
+        '200':
+          description: List of policies
+          content:
+            application/json:
+              schema:
+                $ref: './api_types.schema.yaml#/PoliciesResponse'
+              example:
+                policies:
+                  - id: "default-policy"
+                    name: "Default Policy"
+                    description: "Default policy for all contexts"
+        '404':
+          description: Policy not found
+          content:
+            application/json:
+              schema:
+                $ref: './api_types.schema.yaml#/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: './api_types.schema.yaml#/Error'
+  /policies/{policy_id}:
+    get:
+      summary: Get policy by ID
+      description: |
+        Retrieve a specific policy by its unique identifier.
+      operationId: getPolicy
+      tags:
+        - Policies
+      parameters:
+        - name: policy_id
+          in: path
+          description: Unique identifier of the policy
+          required: true
+          schema:
+            type: string
+          example: "default-policy"
+      responses:
+        '200':
+          description: Policy details
+          content:
+            application/json:
+              schema:
+                $ref: './policy.schema.yaml'
+        '404':
+          description: Policy not found
+          content:
+            application/json:
+              schema:
+                $ref: './api_types.schema.yaml#/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: './api_types.schema.yaml#/Error'
 
 tags:
   - name: Reports

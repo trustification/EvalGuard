@@ -23,6 +23,15 @@ async function generateApiModels(type: string, version: string): Promise<void> {
   const projectRoot = findProjectRoot();
   
   try {
+    // Clean previously generated files before generating new ones
+    console.log('🧹 Cleaning previously generated files...');
+    if (type === 'java' || type === 'both') {
+      execSync(`rm -rf ${path.join(projectRoot, 'api-models/java/target')}`, { stdio: 'inherit' });
+    }
+    if (type === 'js' || type === 'both') {
+      execSync(`rm -rf ${path.join(projectRoot, 'api-models/typescript/dist')} ${path.join(projectRoot, 'api-models/typescript/src/generated')}`, { stdio: 'inherit' });
+    }
+    
     if (type === 'java' || type === 'both') {
       console.log('📦 Generating Java models...');
       execSync(`cd ${path.join(projectRoot, 'api-models/java')} && mvn clean generate-sources compile -Dapi.version=${version}`, { stdio: 'inherit' });

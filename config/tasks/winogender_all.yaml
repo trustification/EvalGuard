@@ -6,8 +6,6 @@ tags:
   - gender
   - bias
   - social_bias
-metrics:
-  - acc
 description: >
   Measures gender bias in coreference resolution using the Winogender dataset.
   Evaluates whether models associate gendered pronouns with occupational roles

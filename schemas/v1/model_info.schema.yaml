@@ -4,22 +4,38 @@ title: ModelInfo
 description: Information about a model
 type: object
 properties:
+  id:
+    type: string
+    description: Unique model identifier
   name:
     type: string
     description: Model name
-  source:
+  namespace:
     type: string
-    description: Model source/organization
-  report_count:
-    type: integer
-    description: Number of evaluation reports for this model
-  latest_evaluation:
-    type: string
-    format: date-time
-    description: Date of the most recent evaluation
+    description: Model namespace or organization
+  aliases:
+    type: array
+    description: List of aliases for the model's name. Must not include the namespace.
+    items:
+      type: string
+  reference_links:
+    type: array
+    description: List of reference links for the model
+    items:
+      $ref: "#/definitions/ReferenceLink"
 required:
+  - id
   - name
-  - source
-  - report_count
-  - latest_evaluation
+  - namespace
 additionalProperties: false 
+definitions:
+  ReferenceLink:
+    type: object
+    properties:
+      name:
+        type: string
+      url:
+        type: string
+    required:
+      - name
+      - url

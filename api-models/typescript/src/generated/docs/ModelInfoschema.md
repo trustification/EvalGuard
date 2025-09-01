@@ -6,10 +6,11 @@ Information about a model
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
+**id** | **string** | Unique model identifier | [default to undefined]
 **name** | **string** | Model name | [default to undefined]
-**source** | **string** | Model source/organization | [default to undefined]
-**report_count** | **number** | Number of evaluation reports for this model | [default to undefined]
-**latest_evaluation** | **string** | Date of the most recent evaluation | [default to undefined]
+**namespace** | **string** | Model namespace or organization | [default to undefined]
+**aliases** | **Array&lt;string&gt;** | List of aliases for the model\&#39;s name. Must not include the namespace. | [optional] [default to undefined]
+**reference_links** | [**Array&lt;ReferenceLink&gt;**](ReferenceLink.md) | List of reference links for the model | [optional] [default to undefined]
 
 ## Example
 
@@ -17,10 +18,11 @@ Name | Type | Description | Notes
 import { ModelInfoschema } from '@trustification/evalguard-api-model';
 
 const instance: ModelInfoschema = {
+    id,
     name,
-    source,
-    report_count,
-    latest_evaluation,
+    namespace,
+    aliases,
+    reference_links,
 };
 ```
 

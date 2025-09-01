@@ -1,0 +1,40 @@
+$schema: http://json-schema.org/draft/2020-12/schema
+$id: https://github.com/evalguard/evalguard/schemas/v1/metric_definition.schema.yaml
+title: MetricDefinition
+description: Schema for a metric used to evaluate tasks in model evaluations.
+type: object
+properties:
+  id:
+    type: string
+    description: Unique metric identifier, used to link metrics to tasks and reports.
+  name:
+    type: string
+    description: Human-readable name of the metric.
+  description:
+    type: string
+    description: Detailed description of what the metric measures.
+  type:
+    type: string
+    enum:
+      - percentage
+      - score
+      - count
+      - time
+      - other
+    description: Type of metric output (percentage, raw score, count, etc.).
+  direction:
+    type: string
+    enum:
+      - higher_is_better
+      - lower_is_better
+    description: Indicates whether higher or lower values correspond to better performance.
+  tags:
+    type: array
+    description: Optional tags describing the metric, e.g., accuracy, robustness, efficiency.
+    items:
+      type: string
+required:
+  - id
+  - name
+  - direction
+additionalProperties: false 

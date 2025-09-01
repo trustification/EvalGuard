@@ -8,7 +8,7 @@ All URIs are relative to *https://api.evalguard.org/v1*
 |[**listGuardrails**](#listguardrails) | **GET** /guardrails | List guardrails|
 
 # **getGuardrail**
-> Guardrail getGuardrail()
+> Guardrailschema getGuardrail()
 
 Retrieve a specific guardrail by its unique identifier. Returns the complete guardrail including target scope, instructions, and metadata. 
 
@@ -39,7 +39,7 @@ const { status, data } = await apiInstance.getGuardrail(
 
 ### Return type
 
-**Guardrail**
+**Guardrailschema**
 
 ### Authorization
 
@@ -61,7 +61,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **listGuardrails**
-> ListGuardrails200Response listGuardrails()
+> GuardrailsResponse listGuardrails()
 
 Retrieve a list of guardrails with optional filtering by tasks and metrics. Guardrails are policies or operational constraints that should be applied during  model evaluation or deployment. 
 
@@ -78,8 +78,8 @@ const apiInstance = new GuardrailsApi(configuration);
 
 let tasks: string; //Comma-separated list of task identifiers to filter guardrails (optional) (default to undefined)
 let metrics: string; //Comma-separated list of metric identifiers to filter guardrails (optional) (default to undefined)
-let limit: number; //Maximum number of guardrails to return (optional) (default to 20)
-let offset: number; //Number of guardrails to skip for pagination (optional) (default to 0)
+let limit: number; //Maximum number of items to return (optional) (default to 20)
+let offset: number; //Number of items to skip for pagination (optional) (default to 0)
 
 const { status, data } = await apiInstance.listGuardrails(
     tasks,
@@ -95,13 +95,13 @@ const { status, data } = await apiInstance.listGuardrails(
 |------------- | ------------- | ------------- | -------------|
 | **tasks** | [**string**] | Comma-separated list of task identifiers to filter guardrails | (optional) defaults to undefined|
 | **metrics** | [**string**] | Comma-separated list of metric identifiers to filter guardrails | (optional) defaults to undefined|
-| **limit** | [**number**] | Maximum number of guardrails to return | (optional) defaults to 20|
-| **offset** | [**number**] | Number of guardrails to skip for pagination | (optional) defaults to 0|
+| **limit** | [**number**] | Maximum number of items to return | (optional) defaults to 20|
+| **offset** | [**number**] | Number of items to skip for pagination | (optional) defaults to 0|
 
 
 ### Return type
 
-**ListGuardrails200Response**
+**GuardrailsResponse**
 
 ### Authorization
 
