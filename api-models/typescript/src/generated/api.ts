@@ -380,6 +380,56 @@ export interface PaginationInfo {
     'has_more': boolean;
 }
 /**
+ * Response containing a list of available policies
+ * @export
+ * @interface PoliciesResponse
+ */
+export interface PoliciesResponse {
+    /**
+     * Array of policy definitions
+     * @type {Array<Policyschema>}
+     * @memberof PoliciesResponse
+     */
+    'policies': Array<Policyschema>;
+    /**
+     * 
+     * @type {PaginationInfo}
+     * @memberof PoliciesResponse
+     */
+    'pagination'?: PaginationInfo;
+}
+/**
+ * Schema for a policy used to evaluate tasks in model evaluations.  Policies organize thresholds and guardrails by evaluation context.  Thresholds are embedded within policies, organized by task ID and metric ID. 
+ * @export
+ * @interface Policyschema
+ */
+export interface Policyschema {
+    /**
+     * Unique policy identifier, used to link policies to tasks and reports.
+     * @type {string}
+     * @memberof Policyschema
+     */
+    'id': string;
+    /**
+     * Human-readable name of the policy.
+     * @type {string}
+     * @memberof Policyschema
+     */
+    'name': string;
+    /**
+     * Detailed description of the policy.
+     * @type {string}
+     * @memberof Policyschema
+     */
+    'description': string;
+    /**
+     * Thresholds for the policy, organized by task ID. Each task maps to a TaskThresholds object.
+     * @type {object}
+     * @memberof Policyschema
+     */
+    'thresholds'?: object;
+}
+/**
  * Evaluation report
  * @export
  * @interface ReportResponseItem
@@ -505,44 +555,6 @@ export interface TasksResponse {
      * @memberof TasksResponse
      */
     'pagination'?: PaginationInfo;
-}
-/**
- * Response containing thresholds for specified tasks
- * @export
- * @interface ThresholdsResponse
- */
-export interface ThresholdsResponse {
-    /**
-     * Array of threshold definitions
-     * @type {Array<Thresholdschema>}
-     * @memberof ThresholdsResponse
-     */
-    'thresholds': Array<Thresholdschema>;
-    /**
-     * 
-     * @type {PaginationInfo}
-     * @memberof ThresholdsResponse
-     */
-    'pagination'?: PaginationInfo;
-}
-/**
- * Schema to define interpretation thresholds for metric scores within a task context.
- * @export
- * @interface Thresholdschema
- */
-export interface Thresholdschema {
-    /**
-     * Task ID to which these thresholds apply.
-     * @type {string}
-     * @memberof Thresholdschema
-     */
-    'task': string;
-    /**
-     * Mapping from metric IDs to arrays of threshold ranges and labels.
-     * @type {object}
-     * @memberof Thresholdschema
-     */
-    'thresholds': object;
 }
 
 /**
@@ -942,7 +954,8 @@ export const ModelCardsApiAxiosParamCreator = function (configuration?: Configur
         /**
          * Retrieve a list of model cards with flexible filtering. Supports filtering by model name, evaluation date range, task type, metrics, dtype, and other criteria. 
          * @summary List model cards
-         * @param {string} [modelName] Filter by model name
+         * @param {string} modelName Filter by model name
+         * @param {string} [policyId] Filter by policy ID
          * @param {string} [tasks] Filter by tasks
          * @param {string} [metrics] Filter by metrics
          * @param {number} [limit] Maximum number of items to return
@@ -950,7 +963,9 @@ export const ModelCardsApiAxiosParamCreator = function (configuration?: Configur
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listModelCards: async (modelName?: string, tasks?: string, metrics?: string, limit?: number, offset?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        listModelCards: async (modelName: string, policyId?: string, tasks?: string, metrics?: string, limit?: number, offset?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'modelName' is not null or undefined
+            assertParamExists('listModelCards', 'modelName', modelName)
             const localVarPath = `/model-cards`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -965,6 +980,10 @@ export const ModelCardsApiAxiosParamCreator = function (configuration?: Configur
 
             if (modelName !== undefined) {
                 localVarQueryParameter['model_name'] = modelName;
+            }
+
+            if (policyId !== undefined) {
+                localVarQueryParameter['policy_id'] = policyId;
             }
 
             if (tasks !== undefined) {
@@ -1007,7 +1026,8 @@ export const ModelCardsApiFp = function(configuration?: Configuration) {
         /**
          * Retrieve a list of model cards with flexible filtering. Supports filtering by model name, evaluation date range, task type, metrics, dtype, and other criteria. 
          * @summary List model cards
-         * @param {string} [modelName] Filter by model name
+         * @param {string} modelName Filter by model name
+         * @param {string} [policyId] Filter by policy ID
          * @param {string} [tasks] Filter by tasks
          * @param {string} [metrics] Filter by metrics
          * @param {number} [limit] Maximum number of items to return
@@ -1015,8 +1035,8 @@ export const ModelCardsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listModelCards(modelName?: string, tasks?: string, metrics?: string, limit?: number, offset?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ModelCardsResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listModelCards(modelName, tasks, metrics, limit, offset, options);
+        async listModelCards(modelName: string, policyId?: string, tasks?: string, metrics?: string, limit?: number, offset?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ModelCardsResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listModelCards(modelName, policyId, tasks, metrics, limit, offset, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ModelCardsApi.listModelCards']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -1034,7 +1054,8 @@ export const ModelCardsApiFactory = function (configuration?: Configuration, bas
         /**
          * Retrieve a list of model cards with flexible filtering. Supports filtering by model name, evaluation date range, task type, metrics, dtype, and other criteria. 
          * @summary List model cards
-         * @param {string} [modelName] Filter by model name
+         * @param {string} modelName Filter by model name
+         * @param {string} [policyId] Filter by policy ID
          * @param {string} [tasks] Filter by tasks
          * @param {string} [metrics] Filter by metrics
          * @param {number} [limit] Maximum number of items to return
@@ -1042,8 +1063,8 @@ export const ModelCardsApiFactory = function (configuration?: Configuration, bas
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listModelCards(modelName?: string, tasks?: string, metrics?: string, limit?: number, offset?: number, options?: RawAxiosRequestConfig): AxiosPromise<ModelCardsResponse> {
-            return localVarFp.listModelCards(modelName, tasks, metrics, limit, offset, options).then((request) => request(axios, basePath));
+        listModelCards(modelName: string, policyId?: string, tasks?: string, metrics?: string, limit?: number, offset?: number, options?: RawAxiosRequestConfig): AxiosPromise<ModelCardsResponse> {
+            return localVarFp.listModelCards(modelName, policyId, tasks, metrics, limit, offset, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -1058,7 +1079,8 @@ export class ModelCardsApi extends BaseAPI {
     /**
      * Retrieve a list of model cards with flexible filtering. Supports filtering by model name, evaluation date range, task type, metrics, dtype, and other criteria. 
      * @summary List model cards
-     * @param {string} [modelName] Filter by model name
+     * @param {string} modelName Filter by model name
+     * @param {string} [policyId] Filter by policy ID
      * @param {string} [tasks] Filter by tasks
      * @param {string} [metrics] Filter by metrics
      * @param {number} [limit] Maximum number of items to return
@@ -1067,8 +1089,8 @@ export class ModelCardsApi extends BaseAPI {
      * @throws {RequiredError}
      * @memberof ModelCardsApi
      */
-    public listModelCards(modelName?: string, tasks?: string, metrics?: string, limit?: number, offset?: number, options?: RawAxiosRequestConfig) {
-        return ModelCardsApiFp(this.configuration).listModelCards(modelName, tasks, metrics, limit, offset, options).then((request) => request(this.axios, this.basePath));
+    public listModelCards(modelName: string, policyId?: string, tasks?: string, metrics?: string, limit?: number, offset?: number, options?: RawAxiosRequestConfig) {
+        return ModelCardsApiFp(this.configuration).listModelCards(modelName, policyId, tasks, metrics, limit, offset, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -1263,6 +1285,192 @@ export class ModelsApi extends BaseAPI {
      */
     public listModels(source?: string, limit?: number, offset?: number, options?: RawAxiosRequestConfig) {
         return ModelsApiFp(this.configuration).listModels(source, limit, offset, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * PoliciesApi - axios parameter creator
+ * @export
+ */
+export const PoliciesApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Retrieve a specific policy by its unique identifier. 
+         * @summary Get policy by ID
+         * @param {string} policyId Unique identifier of the policy
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getPolicy: async (policyId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'policyId' is not null or undefined
+            assertParamExists('getPolicy', 'policyId', policyId)
+            const localVarPath = `/policies/{policy_id}`
+                .replace(`{${"policy_id"}}`, encodeURIComponent(String(policyId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Retrieve a list of all policies available in the system. 
+         * @summary List available policies
+         * @param {number} [limit] Maximum number of items to return
+         * @param {number} [offset] Number of items to skip for pagination
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listPolicies: async (limit?: number, offset?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/policies`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (limit !== undefined) {
+                localVarQueryParameter['limit'] = limit;
+            }
+
+            if (offset !== undefined) {
+                localVarQueryParameter['offset'] = offset;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * PoliciesApi - functional programming interface
+ * @export
+ */
+export const PoliciesApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = PoliciesApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Retrieve a specific policy by its unique identifier. 
+         * @summary Get policy by ID
+         * @param {string} policyId Unique identifier of the policy
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getPolicy(policyId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Policyschema>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getPolicy(policyId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['PoliciesApi.getPolicy']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Retrieve a list of all policies available in the system. 
+         * @summary List available policies
+         * @param {number} [limit] Maximum number of items to return
+         * @param {number} [offset] Number of items to skip for pagination
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listPolicies(limit?: number, offset?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PoliciesResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listPolicies(limit, offset, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['PoliciesApi.listPolicies']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * PoliciesApi - factory interface
+ * @export
+ */
+export const PoliciesApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = PoliciesApiFp(configuration)
+    return {
+        /**
+         * Retrieve a specific policy by its unique identifier. 
+         * @summary Get policy by ID
+         * @param {string} policyId Unique identifier of the policy
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getPolicy(policyId: string, options?: RawAxiosRequestConfig): AxiosPromise<Policyschema> {
+            return localVarFp.getPolicy(policyId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Retrieve a list of all policies available in the system. 
+         * @summary List available policies
+         * @param {number} [limit] Maximum number of items to return
+         * @param {number} [offset] Number of items to skip for pagination
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listPolicies(limit?: number, offset?: number, options?: RawAxiosRequestConfig): AxiosPromise<PoliciesResponse> {
+            return localVarFp.listPolicies(limit, offset, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * PoliciesApi - object-oriented interface
+ * @export
+ * @class PoliciesApi
+ * @extends {BaseAPI}
+ */
+export class PoliciesApi extends BaseAPI {
+    /**
+     * Retrieve a specific policy by its unique identifier. 
+     * @summary Get policy by ID
+     * @param {string} policyId Unique identifier of the policy
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof PoliciesApi
+     */
+    public getPolicy(policyId: string, options?: RawAxiosRequestConfig) {
+        return PoliciesApiFp(this.configuration).getPolicy(policyId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Retrieve a list of all policies available in the system. 
+     * @summary List available policies
+     * @param {number} [limit] Maximum number of items to return
+     * @param {number} [offset] Number of items to skip for pagination
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof PoliciesApi
+     */
+    public listPolicies(limit?: number, offset?: number, options?: RawAxiosRequestConfig) {
+        return PoliciesApiFp(this.configuration).listPolicies(limit, offset, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -1671,141 +1879,6 @@ export class TasksApi extends BaseAPI {
      */
     public listTasks(limit?: number, offset?: number, options?: RawAxiosRequestConfig) {
         return TasksApiFp(this.configuration).listTasks(limit, offset, options).then((request) => request(this.axios, this.basePath));
-    }
-}
-
-
-
-/**
- * ThresholdsApi - axios parameter creator
- * @export
- */
-export const ThresholdsApiAxiosParamCreator = function (configuration?: Configuration) {
-    return {
-        /**
-         * Retrieve performance thresholds for multiple tasks and metrics in a single request. Useful for interpreting metric results across multiple tasks in a report. Supports filtering by specific tasks and metrics. 
-         * @summary Get thresholds for multiple tasks and metrics
-         * @param {string} tasks Comma-separated list of task IDs to get thresholds for
-         * @param {string} [metrics] Comma-separated list of metric IDs to filter by (optional)
-         * @param {number} [limit] Maximum number of items to return
-         * @param {number} [offset] Number of items to skip for pagination
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        getThresholds: async (tasks: string, metrics?: string, limit?: number, offset?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'tasks' is not null or undefined
-            assertParamExists('getThresholds', 'tasks', tasks)
-            const localVarPath = `/thresholds`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            if (tasks !== undefined) {
-                localVarQueryParameter['tasks'] = tasks;
-            }
-
-            if (metrics !== undefined) {
-                localVarQueryParameter['metrics'] = metrics;
-            }
-
-            if (limit !== undefined) {
-                localVarQueryParameter['limit'] = limit;
-            }
-
-            if (offset !== undefined) {
-                localVarQueryParameter['offset'] = offset;
-            }
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-    }
-};
-
-/**
- * ThresholdsApi - functional programming interface
- * @export
- */
-export const ThresholdsApiFp = function(configuration?: Configuration) {
-    const localVarAxiosParamCreator = ThresholdsApiAxiosParamCreator(configuration)
-    return {
-        /**
-         * Retrieve performance thresholds for multiple tasks and metrics in a single request. Useful for interpreting metric results across multiple tasks in a report. Supports filtering by specific tasks and metrics. 
-         * @summary Get thresholds for multiple tasks and metrics
-         * @param {string} tasks Comma-separated list of task IDs to get thresholds for
-         * @param {string} [metrics] Comma-separated list of metric IDs to filter by (optional)
-         * @param {number} [limit] Maximum number of items to return
-         * @param {number} [offset] Number of items to skip for pagination
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async getThresholds(tasks: string, metrics?: string, limit?: number, offset?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ThresholdsResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.getThresholds(tasks, metrics, limit, offset, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ThresholdsApi.getThresholds']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-    }
-};
-
-/**
- * ThresholdsApi - factory interface
- * @export
- */
-export const ThresholdsApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
-    const localVarFp = ThresholdsApiFp(configuration)
-    return {
-        /**
-         * Retrieve performance thresholds for multiple tasks and metrics in a single request. Useful for interpreting metric results across multiple tasks in a report. Supports filtering by specific tasks and metrics. 
-         * @summary Get thresholds for multiple tasks and metrics
-         * @param {string} tasks Comma-separated list of task IDs to get thresholds for
-         * @param {string} [metrics] Comma-separated list of metric IDs to filter by (optional)
-         * @param {number} [limit] Maximum number of items to return
-         * @param {number} [offset] Number of items to skip for pagination
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        getThresholds(tasks: string, metrics?: string, limit?: number, offset?: number, options?: RawAxiosRequestConfig): AxiosPromise<ThresholdsResponse> {
-            return localVarFp.getThresholds(tasks, metrics, limit, offset, options).then((request) => request(axios, basePath));
-        },
-    };
-};
-
-/**
- * ThresholdsApi - object-oriented interface
- * @export
- * @class ThresholdsApi
- * @extends {BaseAPI}
- */
-export class ThresholdsApi extends BaseAPI {
-    /**
-     * Retrieve performance thresholds for multiple tasks and metrics in a single request. Useful for interpreting metric results across multiple tasks in a report. Supports filtering by specific tasks and metrics. 
-     * @summary Get thresholds for multiple tasks and metrics
-     * @param {string} tasks Comma-separated list of task IDs to get thresholds for
-     * @param {string} [metrics] Comma-separated list of metric IDs to filter by (optional)
-     * @param {number} [limit] Maximum number of items to return
-     * @param {number} [offset] Number of items to skip for pagination
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ThresholdsApi
-     */
-    public getThresholds(tasks: string, metrics?: string, limit?: number, offset?: number, options?: RawAxiosRequestConfig) {
-        return ThresholdsApiFp(this.configuration).getThresholds(tasks, metrics, limit, offset, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

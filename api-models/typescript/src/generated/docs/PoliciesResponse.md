@@ -1,21 +1,21 @@
-# ThresholdsResponse
+# PoliciesResponse
 
-Response containing thresholds for specified tasks
+Response containing a list of available policies
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**thresholds** | [**Array&lt;Thresholdschema&gt;**](Thresholdschema.md) | Array of threshold definitions | [default to undefined]
+**policies** | [**Array&lt;Policyschema&gt;**](Policyschema.md) | Array of policy definitions | [default to undefined]
 **pagination** | [**PaginationInfo**](PaginationInfo.md) |  | [optional] [default to undefined]
 
 ## Example
 
 ```typescript
-import { ThresholdsResponse } from '@trustification/evalguard-api-model';
+import { PoliciesResponse } from '@trustification/evalguard-api-model';
 
-const instance: ThresholdsResponse = {
-    thresholds,
+const instance: PoliciesResponse = {
+    policies,
     pagination,
 };
 ```

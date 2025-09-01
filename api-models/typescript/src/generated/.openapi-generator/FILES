@@ -22,6 +22,9 @@ docs/ModelInfoschemaReferenceLinksInner.md
 docs/ModelsApi.md
 docs/ModelsInfoResponse.md
 docs/PaginationInfo.md
+docs/PoliciesApi.md
+docs/PoliciesResponse.md
+docs/Policyschema.md
 docs/ReportResponseItem.md
 docs/ReportType.md
 docs/ReportsApi.md
@@ -29,9 +32,6 @@ docs/ReportsResponse.md
 docs/TaskDefinitionschema.md
 docs/TasksApi.md
 docs/TasksResponse.md
-docs/ThresholdsApi.md
-docs/ThresholdsResponse.md
-docs/Thresholdschema.md
 git_push.sh
 index.ts
 package.json

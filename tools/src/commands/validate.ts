@@ -9,7 +9,7 @@ import { ValidationResult } from '../types/validation';
 interface ValidationContext {
   taskIds: Set<string>; // track unique task IDs
   metricIds: Set<string>; // track unique metric IDs
-  thresholdTasks: Set<string>; // track unique task IDs in thresholds
+  policyIds: Set<string>; // track unique policy IDs
   guardrailIds: Set<string>; // track unique guardrail IDs
   modelIds: Set<string>; // track unique model IDs
   validators: any;
@@ -42,7 +42,7 @@ export async function validateCommand(options: ValidateOptions): Promise<void> {
     const schemas = {
       tasks: loadVersionedSchema(schemasDir, 'task_definition'),
       metrics: loadVersionedSchema(schemasDir, 'metric_definition'),
-      thresholds: loadVersionedSchema(schemasDir, 'threshold'),
+      policies: loadVersionedSchema(schemasDir, 'policy'),
       guardrails: loadVersionedSchema(schemasDir, 'guardrail'),
       models: loadVersionedSchema(schemasDir, 'model_info')
     };
@@ -51,7 +51,7 @@ export async function validateCommand(options: ValidateOptions): Promise<void> {
     const validators = {
       tasks: ajv.compile(schemas.tasks),
       metrics: ajv.compile(schemas.metrics),
-      thresholds: ajv.compile(schemas.thresholds),
+      policies: ajv.compile(schemas.policies),
       guardrails: ajv.compile(schemas.guardrails),
       models: ajv.compile(schemas.models)
     };
@@ -59,7 +59,7 @@ export async function validateCommand(options: ValidateOptions): Promise<void> {
     const context: ValidationContext = {
       taskIds: new Set<string>(),
       metricIds: new Set<string>(),
-      thresholdTasks: new Set<string>(),
+      policyIds: new Set<string>(),
       guardrailIds: new Set<string>(),
       modelIds: new Set<string>(),
       validators
@@ -72,6 +72,7 @@ export async function validateCommand(options: ValidateOptions): Promise<void> {
     } else if (options.type) {
       validationResults = await validateSpecificType(options.type, configDir, context);
     } else {
+      // Validate all types in dependency order: tasks and metrics first, then policies
       validationResults = await validateAllTypes(configDir, context);
     }
     
@@ -97,8 +98,8 @@ async function validateSingleFile(filePath: string, context: ValidationContext):
 
 async function validateSpecificType(type: string, configDir: string, context: ValidationContext): Promise<ValidationResult[]> {
   const normalizedType = type.toLowerCase();
-  if (!['metrics', 'tasks', 'thresholds', 'guardrails', 'models'].includes(normalizedType)) {
-    console.error(`❌ Invalid type: ${type}. Must be one of: metrics, tasks, thresholds, guardrails, models`);
+  if (!['tasks', 'metrics', 'policies', 'guardrails', 'models'].includes(normalizedType)) {
+    console.error(`❌ Invalid type: ${type}. Must be one of: tasks, metrics, policies, guardrails, models`);
     process.exit(1);
   }
   
@@ -130,7 +131,8 @@ async function validateAllTypes(configDir: string, context: ValidationContext): 
   const results: ValidationResult[] = [];
   
   // Validate all types and check for uniqueness
-  for (const type of ['metrics', 'tasks', 'thresholds', 'guardrails', 'models'] as const) {
+  // Note: policies must come after tasks and metrics since they reference them
+  for (const type of ['tasks', 'metrics', 'policies', 'guardrails', 'models'] as const) {
     const typeDir = path.join(configDir, type);
     if (!fs.existsSync(typeDir)) {
       console.warn(`⚠️  Directory not found: ${typeDir}`);
@@ -159,8 +161,8 @@ function validateUniqueness(result: ValidationResult, type: string, context: Val
     validateTaskUniqueness(result, context);
   } else if (type === 'metrics') {
     validateMetricUniqueness(result, context);
-  } else if (type === 'thresholds') {
-    validateThresholdUniqueness(result, context);
+  } else if (type === 'policies') {
+    validatePolicyUniqueness(result, context);
   } else if (type === 'guardrails') {
     validateGuardrailUniqueness(result, context);
   } else if (type === 'models') {
@@ -192,14 +194,67 @@ function validateMetricUniqueness(result: ValidationResult, context: ValidationC
   }
 }
 
-function validateThresholdUniqueness(result: ValidationResult, context: ValidationContext): void {
-  const taskId = result.data.task;
-  if (taskId) {
-    if (context.thresholdTasks.has(taskId)) {
+function validatePolicyUniqueness(result: ValidationResult, context: ValidationContext): void {
+  const policyId = result.data.id;
+  if (policyId) {
+    if (context.policyIds.has(policyId)) {
       result.valid = false;
-      result.errors.push(`Duplicate threshold task ID: '${taskId}' - all threshold metrics for a task must be grouped together`);
+      result.errors.push(`Duplicate policy ID: '${policyId}'`);
     } else {
-      context.thresholdTasks.add(taskId);
+      context.policyIds.add(policyId);
+    }
+    
+    // Validate embedded thresholds structure
+    validatePolicyThresholds(result, context);
+  }
+}
+
+function validatePolicyThresholds(result: ValidationResult, context: ValidationContext): void {
+  const thresholds = result.data.thresholds;
+  if (thresholds && typeof thresholds === 'object') {
+    // Check that thresholds is an object with task IDs as keys
+    for (const [taskId, taskThresholds] of Object.entries(thresholds)) {
+      // Validate that taskId references an existing task
+      if (!context.taskIds.has(taskId)) {
+        result.valid = false;
+        result.errors.push(`Policy references unknown task ID: '${taskId}'`);
+      }
+      
+      // Validate that taskThresholds is an object with metric IDs as keys
+      if (taskThresholds && typeof taskThresholds === 'object') {
+        for (const [metricId, metricThresholds] of Object.entries(taskThresholds as any)) {
+          // Validate that metricId references an existing metric
+          if (!context.metricIds.has(metricId)) {
+            result.valid = false;
+            result.errors.push(`Policy references unknown metric ID: '${metricId}' in task '${taskId}'`);
+          }
+          
+          // Validate that metricThresholds is an array
+          if (!Array.isArray(metricThresholds)) {
+            result.valid = false;
+            result.errors.push(`Thresholds for metric '${metricId}' in task '${taskId}' must be an array`);
+          }
+          
+          // Validate each ThresholdRangeItem in the array
+          if (Array.isArray(metricThresholds)) {
+            for (const thresholdItem of metricThresholds) {
+              if (!thresholdItem.impact) {
+                result.valid = false;
+                result.errors.push(`Threshold item in metric '${metricId}' of task '${taskId}' missing required 'impact' field`);
+              }
+              
+              // Validate that at least min or max is present
+              if (thresholdItem.min === undefined && thresholdItem.max === undefined) {
+                result.valid = false;
+                result.errors.push(`Threshold item in metric '${metricId}' of task '${taskId}' must have either 'min' or 'max' value`);
+              }
+            }
+          }
+        }
+      } else {
+        result.valid = false;
+        result.errors.push(`Task '${taskId}' thresholds must be an object`);
+      }
     }
   }
 }
@@ -333,28 +388,46 @@ async function validateFile(filePath: string, validators: any, expectedType?: st
     } else if (fileName.includes('metric')) {
       type = 'metrics';
       validator = validators.metrics;
-    } else if (fileName.includes('threshold')) {
-      type = 'thresholds';
-      validator = validators.thresholds;
+    } else if (fileName.includes('policy')) {
+      type = 'policies';
+      validator = validators.policies;
     } else if (fileName.includes('guardrail')) {
       type = 'guardrails';
       validator = validators.guardrails;
     } else {
-      // Try all validators
-      for (const [t, v] of Object.entries(validators)) {
-        if ((v as any)(data)) {
-          type = t;
-          validator = v;
-          break;
+      // Try to determine type from content structure
+      if (data.id && data.name && data.description && data.thresholds) {
+        type = 'policies';
+        validator = validators.policies;
+      } else if (data.id && data.name && data.description && data.metrics) {
+        type = 'tasks';
+        validator = validators.tasks;
+      } else if (data.id && data.name && data.description && data.type) {
+        type = 'metrics';
+        validator = validators.metrics;
+      } else if (data.id && data.name && data.description && data.constraints) {
+        type = 'guardrails';
+        validator = validators.guardrails;
+      } else if (data.id && data.name && data.description && data.version) {
+        type = 'models';
+        validator = validators.models;
+      } else {
+        // Try all validators as fallback
+        for (const [t, v] of Object.entries(validators)) {
+          if ((v as any)(data)) {
+            type = t;
+            validator = v;
+            break;
+          }
         }
-      }
-      
-      if (!validator) {
-        return {
-          file: filePath,
-          valid: false,
-          errors: ['Could not determine schema type for this file.']
-        };
+        
+        if (!validator) {
+          return {
+            file: filePath,
+            valid: false,
+            errors: ['Could not determine schema type for this file.']
+          };
+        }
       }
     }
   }

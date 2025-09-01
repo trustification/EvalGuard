@@ -1,26 +1,43 @@
 $schema: http://json-schema.org/draft/2020-12/schema
-$id: https://github.com/evalguard/evalguard/schemas/v1/threshold.schema.yaml
-title: Threshold
-description: Schema to define interpretation thresholds for metric scores within a task context.
+$id: https://github.com/evalguard/evalguard/schemas/v1/policy.schema.yaml
+title: Policy
+description: |
+  Schema for a policy used to evaluate tasks in model evaluations. 
+  Policies organize thresholds and guardrails by evaluation context.
+  
+  Thresholds are embedded within policies, organized by task ID and metric ID.
 type: object
 properties:
-  task:
+  id:
     type: string
-    description: Task ID to which these thresholds apply.
+    description: Unique policy identifier, used to link policies to tasks and reports.
+  name:
+    type: string
+    description: Human-readable name of the policy.
+  description:
+    type: string
+    description: Detailed description of the policy.
   thresholds:
     type: object
-    description: Mapping from metric IDs to arrays of threshold ranges and labels.
+    description: Thresholds for the policy, organized by task ID. Each task maps to a TaskThresholds object.
     patternProperties:
-      "^.+$":
-        type: array
-        description: Array of threshold ranges for a metric
-        items:
-          $ref: "#/definitions/ThresholdRangeItem"
+      "^[a-zA-Z0-9_-]+$":
+        $ref: "#/definitions/TaskThresholds"
 required:
-  - task
-  - thresholds
+  - id
+  - name
+  - description
 additionalProperties: false
 definitions:
+  TaskThresholds:
+    type: object
+    description: Thresholds for a specific task. Each metric maps to an array of ThresholdRangeItem objects.
+    patternProperties:
+      "^[a-zA-Z0-9_-]+$":
+        type: array
+        description: Array of threshold ranges for a specific metric
+        items:
+          $ref: "#/definitions/ThresholdRangeItem"
   ThresholdRangeItem:
     type: object
     description: A threshold range with label and optional min/max values
@@ -53,4 +70,4 @@ definitions:
       - required:
           - min
       - required:
-          - max 
+          - max

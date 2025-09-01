@@ -112,20 +112,6 @@ MetricsResponse:
   required:
     - metrics
 
-ThresholdsResponse:
-  type: object
-  description: Response containing thresholds for specified tasks
-  properties:
-    thresholds:
-      type: array
-      description: Array of threshold definitions
-      items:
-        $ref: './threshold.schema.yaml'
-    pagination:
-      $ref: '#/PaginationInfo'
-  required:
-    - thresholds
-
 ReportsResponse:
   type: object
   description: Response containing a list of evaluation reports
@@ -165,3 +151,17 @@ ReportType:
 LmEvalReport:
   type: object
   description: LM Evaluation Harness report.
+
+PoliciesResponse:
+  type: object
+  description: Response containing a list of available policies
+  properties:
+    policies:
+      type: array
+      description: Array of policy definitions
+      items:
+        $ref: './policy.schema.yaml'
+    pagination:
+      $ref: '#/PaginationInfo'
+  required:
+    - policies

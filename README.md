@@ -15,11 +15,12 @@ EvalGuard is **tool-agnostic** but compatible with evaluation outputs from syste
 
 EvalGuard provides:
 
-- **Schemas** for evaluation reports, tasks, metrics, and guardrails
+- **Schemas** for evaluation reports, tasks, metrics, policies, and guardrails
 - **Configuration files** for:
+  - Model description and information
   - Task descriptions and categories
   - Metric types and interpretations
-  - Thresholds for performance levels
+  - Policies with embedded performance thresholds
   - Guardrails for operational constraints and policies
   - Tags for capabilities, risk types, and domains
 - **Annotated evaluation reports** (e.g., in JSON/YAML format)
@@ -54,7 +55,7 @@ evalguard/
 ├── config/            # Configuration files for interpretation
 │   ├── tasks/         # Task definitions and metadata
 │   ├── metrics/       # Metric definitions and types
-│   ├── thresholds/    # Performance thresholds
+│   ├── policies/      # Policy definitions
 │   └── guardrails/    # Operational guardrails and policies
 ├── reports/           # Community-contributed model evaluation reports
 │   └── lm-eval/       # lm-evaluation-harness reports
@@ -67,14 +68,61 @@ evalguard/
 
 ## Tools and CLI
 
-EvalGuard provides a CLI tool for schema validation and data generation. The tool helps with:
+EvalGuard provides a CLI tool for schema validation, data generation, and API model generation. The tool helps with:
 
 - **Schema Validation**: Validate configuration files against EvalGuard schemas
 - **Data Generation**: Generate tasks and metrics from evaluation reports
-- **Model Generation**: Generate TypeScript interfaces from schemas
+- **API Model Generation**: Generate Java and TypeScript models from OpenAPI schemas
 - **Cross-Reference Validation**: Ensure consistency between tasks, metrics, and thresholds
 
 The tool implements the requirements defined in the [EvalGuard Schema Specification](SPECIFICATION.md):
+
+## Policies
+
+EvalGuard includes a policy system that defines evaluation contexts and performance thresholds. Policies provide a structured way to organize thresholds and interpret model performance within specific evaluation contexts.
+
+### Policy Features
+
+- **Contextual Organization**: Policies group related thresholds and evaluation criteria
+- **Embedded Thresholds**: Performance thresholds are embedded within policy definitions
+- **Flexible Application**: Policies can be applied to specific tasks, metrics, or evaluation scenarios
+- **Standardized Interpretation**: Consistent threshold definitions across different evaluation contexts
+
+### Example Policy Structure
+
+```yaml
+# config/policies/default/policy.yaml
+id: default
+name: Default Policy
+description: Default policy for all contexts that don't define a specific policy.
+
+# config/policies/default/thresholds/truthfulqa_mc1.yaml
+task: truthfulqa_mc1
+thresholds:
+  acc:
+    - impact: very_low
+      min: 0.85
+      interpretation: High factual accuracy
+    - impact: moderate
+      min: 0.5
+      max: 0.85
+      interpretation: Moderate accuracy
+    - impact: severe
+      max: 0.5
+      interpretation: Low accuracy
+```
+
+### Policy Contextualization
+
+In EvalGuard, both thresholds and guardrails are organized under policies. This means:
+
+- **Policy-Based Organization**: Thresholds and guardrails are embedded within evaluation policies (e.g., "default", "enterprise", "research")
+- **Embedded Thresholds**: Thresholds are now part of the policy structure, not separate endpoints
+- **Model Card Contextualization**: When you request a model card, you specify a `policy_id` to get thresholds and guardrails appropriate for that specific evaluation context
+- **Flexible Interpretation**: Different policies can provide different threshold interpretations and guardrail requirements for the same metrics
+- **No Access Control**: Policies do not control API access or permissions - they only affect the content returned in model cards
+
+**Example**: Requesting a model card with `?policy_id=enterprise` will return enterprise-specific thresholds and guardrails, while `?policy_id=research` might return more permissive research-oriented ones.
 
 ## Guardrails
 
@@ -110,7 +158,8 @@ EvalGuard defines a REST API specification for accessing evaluation reports. The
 - **Model Discovery**: List available models and their evaluation history
 - **Task Information**: Access task definitions and metadata
 - **Metrics Access**: Retrieve performance metrics for specific reports
-- **Threshold Access**: Get performance thresholds for interpreting metric results
+- **Policy Access**: Get policies with embedded thresholds for interpreting metric results
+- **Policy Contextualization**: Thresholds are contextualized based on `policy_id` query parameters
 - **Guardrails Access**: Retrieve operational guardrails and policies
 
 > **Note**: This is a **specification only**. The API is not implemented in this repository. Anyone interested in providing EvalGuard API services can implement this specification.
@@ -127,8 +176,14 @@ curl "https://api.evalguard.org/v1/reports/llama-3.1-8b-instruct-eval-2025-01-15
 # Get only metrics for a report
 curl "https://api.evalguard.org/v1/reports/llama-3.1-8b-instruct-eval-2025-01-15/metrics"
 
-# Get thresholds for multiple tasks and metrics
-curl "https://api.evalguard.org/v1/thresholds?tasks=truthfulqa_mc1,winogender_schemas&metrics=acc,acc_norm,pct_stereotype"
+# Get policies with embedded thresholds for multiple tasks and metrics
+curl "https://api.evalguard.org/v1/policies?tasks=truthfulqa_mc1,winogender_schemas&metrics=acc,acc_norm,pct_stereotype"
+
+# Get model card with specific policy thresholds
+curl "https://api.evalguard.org/v1/models/llama-3.1-8b-instruct/card?policy_id=default"
+
+# Get specific policy with embedded thresholds
+curl "https://api.evalguard.org/v1/policies/default"
 
 # List available models
 curl "https://api.evalguard.org/v1/models"
@@ -160,6 +215,7 @@ evalguard config validate
 # Validate specific types
 evalguard config validate -t tasks
 evalguard config validate -t metrics
+evalguard config validate -t policies
 evalguard config validate -t thresholds
 evalguard config validate -t guardrails
 

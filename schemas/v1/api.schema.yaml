@@ -35,10 +35,17 @@ paths:
         - name: model_name  
           in: query
           description: Filter by model name
-          required: false
+          required: true
           schema:
             type: string
           example: "meta-llama/Llama-3.1-8B-Instruct"
+        - name: policy_id
+          in: query
+          description: Filter by policy ID
+          required: false
+          schema:
+            type: string
+          example: "default"
         - name: tasks
           in: query
           description: Filter by tasks
@@ -122,16 +129,14 @@ paths:
                             value: 0.75
                             stderr: 0.015
                             thresholds:
-                              - label: "Poor"
+                              - impact: high
                                 max: 0.5
-                                interpretation: "Performance below acceptable threshold"
-                              - label: "Good"
+                              - impact: moderate
                                 min: 0.5
-                                max: 0.8
-                                interpretation: "Acceptable performance"
-                              - label: "Excellent"
-                                min: 0.8
-                                interpretation: "Outstanding performance"
+                                max: 0.6
+                              - impact: low
+                                min: 0.6
+                                max: 0.7
                           - metric:
                               id: "acc_norm"
                               name: "Normalized Accuracy"
@@ -147,13 +152,14 @@ paths:
                             value: 0.72
                             stderr: 0.016
                             thresholds:
-                              - label: "Poor"
+                              - impact: high
                                 max: 0.5
-                              - label: "Good"
+                              - impact: moderate
                                 min: 0.5
-                                max: 0.8
-                              - label: "Excellent"
-                                min: 0.8
+                                max: 0.6
+                              - impact: low
+                                min: 0.6
+                                max: 0.7
                     guardrails:
                       - id: "truthfulness-check"
                         name: "Truthfulness Verification"
@@ -701,32 +707,15 @@ paths:
             application/json:
               schema:
                 $ref: './api_types.schema.yaml#/Error'
-  
-  /thresholds:
+  /policies:
     get:
-      summary: Get thresholds for multiple tasks and metrics
+      summary: List available policies
       description: |
-        Retrieve performance thresholds for multiple tasks and metrics in a single request.
-        Useful for interpreting metric results across multiple tasks in a report.
-        Supports filtering by specific tasks and metrics.
-      operationId: getThresholds
+        Retrieve a list of all policies available in the system.
+      operationId: listPolicies
       tags:
-        - Thresholds
+        - Policies
       parameters:
-        - name: tasks
-          in: query
-          description: Comma-separated list of task IDs to get thresholds for
-          required: true
-          schema:
-            type: string
-          example: "truthfulqa_mc1,winogender_schemas"
-        - name: metrics
-          in: query
-          description: Comma-separated list of metric IDs to filter by (optional)
-          required: false
-          schema:
-            type: string
-          example: "acc,acc_norm,pct_stereotype"
         - name: limit
           in: query
           description: Maximum number of items to return
@@ -748,60 +737,53 @@ paths:
           example: 0
       responses:
         '200':
-          description: Thresholds for the specified tasks and metrics
+          description: List of policies
           content:
             application/json:
               schema:
-                $ref: './api_types.schema.yaml#/ThresholdsResponse'
+                $ref: './api_types.schema.yaml#/PoliciesResponse'
               example:
-                thresholds:
-                  - task: "truthfulqa_mc1"
-                    thresholds:
-                      acc:
-                        - label: "Poor"
-                          max: 0.5
-                          interpretation: "Performance below acceptable threshold"
-                        - label: "Good"
-                          min: 0.5
-                          max: 0.8
-                          interpretation: "Acceptable performance"
-                        - label: "Excellent"
-                          min: 0.8
-                          interpretation: "Outstanding performance"
-                      acc_norm:
-                        - label: "Poor"
-                          max: 0.5
-                        - label: "Good"
-                          min: 0.5
-                          max: 0.8
-                        - label: "Excellent"
-                          min: 0.8
-                  - task: "winogender_schemas"
-                    thresholds:
-                      acc:
-                        - label: "Poor"
-                          max: 0.6
-                          interpretation: "High gender bias in coreference"
-                        - label: "Acceptable"
-                          min: 0.6
-                          max: 0.8
-                          interpretation: "Moderate gender bias"
-                        - label: "Good"
-                          min: 0.8
-                          interpretation: "Low gender bias"
-                      pct_stereotype:
-                        - label: "High Bias"
-                          min: 0.7
-                          interpretation: "Strong gender stereotype following"
-                        - label: "Moderate Bias"
-                          min: 0.4
-                          max: 0.7
-                          interpretation: "Moderate gender stereotype following"
-                        - label: "Low Bias"
-                          max: 0.4
-                          interpretation: "Minimal gender stereotype following"
+                policies:
+                  - id: "default-policy"
+                    name: "Default Policy"
+                    description: "Default policy for all contexts"
         '404':
-          description: Thresholds not found for one or more specified tasks
+          description: Policy not found
+          content:
+            application/json:
+              schema:
+                $ref: './api_types.schema.yaml#/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: './api_types.schema.yaml#/Error'
+  /policies/{policy_id}:
+    get:
+      summary: Get policy by ID
+      description: |
+        Retrieve a specific policy by its unique identifier.
+      operationId: getPolicy
+      tags:
+        - Policies
+      parameters:
+        - name: policy_id
+          in: path
+          description: Unique identifier of the policy
+          required: true
+          schema:
+            type: string
+          example: "default-policy"
+      responses:
+        '200':
+          description: Policy details
+          content:
+            application/json:
+              schema:
+                $ref: './policy.schema.yaml'
+        '404':
+          description: Policy not found
           content:
             application/json:
               schema:

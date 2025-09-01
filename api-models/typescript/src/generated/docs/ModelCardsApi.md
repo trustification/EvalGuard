@@ -22,7 +22,8 @@ import {
 const configuration = new Configuration();
 const apiInstance = new ModelCardsApi(configuration);
 
-let modelName: string; //Filter by model name (optional) (default to undefined)
+let modelName: string; //Filter by model name (default to undefined)
+let policyId: string; //Filter by policy ID (optional) (default to undefined)
 let tasks: string; //Filter by tasks (optional) (default to undefined)
 let metrics: string; //Filter by metrics (optional) (default to undefined)
 let limit: number; //Maximum number of items to return (optional) (default to 20)
@@ -30,6 +31,7 @@ let offset: number; //Number of items to skip for pagination (optional) (default
 
 const { status, data } = await apiInstance.listModelCards(
     modelName,
+    policyId,
     tasks,
     metrics,
     limit,
@@ -41,7 +43,8 @@ const { status, data } = await apiInstance.listModelCards(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **modelName** | [**string**] | Filter by model name | (optional) defaults to undefined|
+| **modelName** | [**string**] | Filter by model name | defaults to undefined|
+| **policyId** | [**string**] | Filter by policy ID | (optional) defaults to undefined|
 | **tasks** | [**string**] | Filter by tasks | (optional) defaults to undefined|
 | **metrics** | [**string**] | Filter by metrics | (optional) defaults to undefined|
 | **limit** | [**number**] | Maximum number of items to return | (optional) defaults to 20|
