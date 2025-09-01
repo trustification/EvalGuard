@@ -24,6 +24,31 @@ import type { RequestArgs } from './base';
 import { BASE_PATH, COLLECTION_FORMATS, BaseAPI, RequiredError, operationServerMap } from './base';
 
 /**
+ * 
+ * @export
+ * @interface GuardrailTarget
+ */
+export interface GuardrailTarget {
+    /**
+     * Task identifier to which the guardrail applies.
+     * @type {string}
+     * @memberof GuardrailTarget
+     */
+    'task': string;
+    /**
+     * List of metric identifiers to which the guardrail applies
+     * @type {Array<string>}
+     * @memberof GuardrailTarget
+     */
+    'metrics': Array<string>;
+    /**
+     * Model identifier this guardrail is scoped to (Optional)
+     * @type {string}
+     * @memberof GuardrailTarget
+     */
+    'model'?: string;
+}
+/**
  * Response containing a list of available guardrails
  * @export
  * @interface GuardrailsResponse
@@ -68,10 +93,10 @@ export interface Guardrailschema {
     'description'?: string;
     /**
      * Specifies what the guardrail applies to: tasks, metrics, and/or specific models. 
-     * @type {Array<GuardrailschemaTargetsInner>}
+     * @type {Array<GuardrailTarget>}
      * @memberof Guardrailschema
      */
-    'targets': Array<GuardrailschemaTargetsInner>;
+    'targets': Array<GuardrailTarget>;
     /**
      * Indicates the data flow stage at which the guardrail should be applied: \'input\' for prompt/input constraints, \'output\' for generation constraints,  or \'both\' for end-to-end application. 
      * @type {string}
@@ -100,31 +125,6 @@ export const GuardrailschemaScopeEnum = {
 
 export type GuardrailschemaScopeEnum = typeof GuardrailschemaScopeEnum[keyof typeof GuardrailschemaScopeEnum];
 
-/**
- * 
- * @export
- * @interface GuardrailschemaTargetsInner
- */
-export interface GuardrailschemaTargetsInner {
-    /**
-     * Task identifier to which the guardrail applies.
-     * @type {string}
-     * @memberof GuardrailschemaTargetsInner
-     */
-    'task': string;
-    /**
-     * List of metric identifiers to which the guardrail applies
-     * @type {Array<string>}
-     * @memberof GuardrailschemaTargetsInner
-     */
-    'metrics': Array<string>;
-    /**
-     * Model identifier this guardrail is scoped to (Optional)
-     * @type {string}
-     * @memberof GuardrailschemaTargetsInner
-     */
-    'model'?: string;
-}
 /**
  * Schema for a metric used to evaluate tasks in model evaluations.
  * @export
@@ -305,29 +305,10 @@ export interface ModelInfoschema {
     'aliases'?: Array<string>;
     /**
      * List of reference links for the model
-     * @type {Array<ModelInfoschemaReferenceLinksInner>}
+     * @type {Array<ReferenceLink>}
      * @memberof ModelInfoschema
      */
-    'reference_links'?: Array<ModelInfoschemaReferenceLinksInner>;
-}
-/**
- * 
- * @export
- * @interface ModelInfoschemaReferenceLinksInner
- */
-export interface ModelInfoschemaReferenceLinksInner {
-    /**
-     * 
-     * @type {string}
-     * @memberof ModelInfoschemaReferenceLinksInner
-     */
-    'name'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ModelInfoschemaReferenceLinksInner
-     */
-    'url'?: string;
+    'reference_links'?: Array<ReferenceLink>;
 }
 /**
  * Response containing a list of available models
@@ -428,6 +409,25 @@ export interface Policyschema {
      * @memberof Policyschema
      */
     'thresholds'?: object;
+}
+/**
+ * 
+ * @export
+ * @interface ReferenceLink
+ */
+export interface ReferenceLink {
+    /**
+     * 
+     * @type {string}
+     * @memberof ReferenceLink
+     */
+    'name': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ReferenceLink
+     */
+    'url': string;
 }
 /**
  * Evaluation report

@@ -1,19 +1,19 @@
-# ModelInfoschemaReferenceLinksInner
+# ReferenceLink
 
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**name** | **string** |  | [optional] [default to undefined]
-**url** | **string** |  | [optional] [default to undefined]
+**name** | **string** |  | [default to undefined]
+**url** | **string** |  | [default to undefined]
 
 ## Example
 
 ```typescript
-import { ModelInfoschemaReferenceLinksInner } from '@trustification/evalguard-api-model';
+import { ReferenceLink } from '@trustification/evalguard-api-model';
 
-const instance: ModelInfoschemaReferenceLinksInner = {
+const instance: ReferenceLink = {
     name,
     url,
 };

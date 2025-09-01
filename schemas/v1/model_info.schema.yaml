@@ -22,14 +22,20 @@ properties:
     type: array
     description: List of reference links for the model
     items:
-      type: object
-      properties:
-        name:
-          type: string
-        url:
-          type: string
+      $ref: "#/definitions/ReferenceLink"
 required:
   - id
   - name
   - namespace
 additionalProperties: false 
+definitions:
+  ReferenceLink:
+    type: object
+    properties:
+      name:
+        type: string
+      url:
+        type: string
+    required:
+      - name
+      - url

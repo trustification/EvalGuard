@@ -68,20 +68,20 @@ Class | Method | HTTP request | Description
 
 ### Documentation For Models
 
+ - [GuardrailTarget](docs/GuardrailTarget.md)
  - [GuardrailsResponse](docs/GuardrailsResponse.md)
  - [Guardrailschema](docs/Guardrailschema.md)
- - [GuardrailschemaTargetsInner](docs/GuardrailschemaTargetsInner.md)
  - [MetricDefinitionschema](docs/MetricDefinitionschema.md)
  - [MetricsResponse](docs/MetricsResponse.md)
  - [ModelCardsResponse](docs/ModelCardsResponse.md)
  - [ModelCardschema](docs/ModelCardschema.md)
  - [ModelError](docs/ModelError.md)
  - [ModelInfoschema](docs/ModelInfoschema.md)
- - [ModelInfoschemaReferenceLinksInner](docs/ModelInfoschemaReferenceLinksInner.md)
  - [ModelsInfoResponse](docs/ModelsInfoResponse.md)
  - [PaginationInfo](docs/PaginationInfo.md)
  - [PoliciesResponse](docs/PoliciesResponse.md)
  - [Policyschema](docs/Policyschema.md)
+ - [ReferenceLink](docs/ReferenceLink.md)
  - [ReportResponseItem](docs/ReportResponseItem.md)
  - [ReportType](docs/ReportType.md)
  - [ReportsResponse](docs/ReportsResponse.md)

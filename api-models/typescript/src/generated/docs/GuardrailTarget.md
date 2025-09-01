@@ -1,4 +1,4 @@
-# GuardrailschemaTargetsInner
+# GuardrailTarget
 
 
 ## Properties
@@ -12,9 +12,9 @@ Name | Type | Description | Notes
 ## Example
 
 ```typescript
-import { GuardrailschemaTargetsInner } from '@trustification/evalguard-api-model';
+import { GuardrailTarget } from '@trustification/evalguard-api-model';
 
-const instance: GuardrailschemaTargetsInner = {
+const instance: GuardrailTarget = {
     task,
     metrics,
     model,

@@ -10,7 +10,7 @@ Name | Type | Description | Notes
 **name** | **string** | Model name | [default to undefined]
 **namespace** | **string** | Model namespace or organization | [default to undefined]
 **aliases** | **Array&lt;string&gt;** | List of aliases for the model\&#39;s name. Must not include the namespace. | [optional] [default to undefined]
-**reference_links** | [**Array&lt;ModelInfoschemaReferenceLinksInner&gt;**](ModelInfoschemaReferenceLinksInner.md) | List of reference links for the model | [optional] [default to undefined]
+**reference_links** | [**Array&lt;ReferenceLink&gt;**](ReferenceLink.md) | List of reference links for the model | [optional] [default to undefined]
 
 ## Example
 
