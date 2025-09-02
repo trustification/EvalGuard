@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import { execSync } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as os from 'os';
 
 // Helper function to find project root
 function findProjectRoot(): string {
@@ -14,6 +15,66 @@ function findProjectRoot(): string {
     currentDir = path.dirname(currentDir);
   }
   throw new Error('Could not find project root (directory containing schemas/ and api-models/)');
+}
+
+// Helper function to get platform-agnostic temp directory
+function getTempDir(): string {
+  return os.tmpdir();
+}
+
+// Helper function to get git status in a portable way
+function getGitStatus(): string {
+  try {
+    return execSync('git status --porcelain', { encoding: 'utf8' });
+  } catch (error) {
+    console.warn('⚠️  Could not get git status:', error);
+    return '';
+  }
+}
+
+// Helper function to get git diff in a portable way
+function getGitDiff(): string {
+  try {
+    return execSync('git diff --name-only', { encoding: 'utf8' });
+  } catch (error) {
+    console.warn('⚠️  Could not get git diff:', error);
+    return '';
+  }
+}
+
+// Helper function to analyze changes using Node.js instead of Unix commands
+function analyzeChanges(beforeStatus: string, afterStatus: string, afterDiff: string): { newFiles: string[], modifiedFiles: string[] } {
+  const newFiles: string[] = [];
+  const modifiedFiles: string[] = [];
+  
+  // Parse git status output
+  const beforeLines = beforeStatus.split('\n').filter(line => line.trim());
+  const afterLines = afterStatus.split('\n').filter(line => line.trim());
+  
+  // Find new files (lines that start with '??' in after but not in before)
+  const beforeNewFiles = new Set(beforeLines.filter(line => line.startsWith('??')).map(line => line.substring(3)));
+  const afterNewFiles = afterLines.filter(line => line.startsWith('??')).map(line => line.substring(3));
+  
+  afterNewFiles.forEach(file => {
+    if (!beforeNewFiles.has(file) && 
+        !file.includes('api-models/typescript/src/generated/') &&
+        !file.includes('api-models/java/target/') &&
+        !file.includes('api-models/typescript/dist/')) {
+      newFiles.push(file);
+    }
+  });
+  
+  // Parse git diff output
+  const diffLines = afterDiff.split('\n').filter(line => line.trim());
+  diffLines.forEach(file => {
+    if (!file.includes('api-models/typescript/src/generated/') &&
+        !file.includes('api-models/java/target/') &&
+        !file.includes('api-models/typescript/dist/')) {
+      modifiedFiles.push(file);
+    }
+  });
+  
+  return { newFiles, modifiedFiles };
 }
 
 // API Model Generation Functions
@@ -57,8 +118,8 @@ async function validateApiModels(type: string, version: string): Promise<void> {
   try {
     // Store current Git state
     console.log('📸 Storing current Git state...');
-    execSync('git status --porcelain > /tmp/before_generate.txt', { stdio: 'inherit' });
-    execSync('git diff --name-only > /tmp/before_generate_diff.txt', { stdio: 'inherit' });
+    const beforeStatus = getGitStatus();
+    const beforeDiff = getGitDiff();
     
     // Clean previously generated files
     console.log('🧹 Cleaning previously generated files...');
@@ -74,22 +135,21 @@ async function validateApiModels(type: string, version: string): Promise<void> {
     
     // Check for unintended file changes
     console.log('🔍 Checking for unintended file changes...');
-    execSync('git status --porcelain > /tmp/after_generate.txt', { stdio: 'inherit' });
-    execSync('git diff --name-only > /tmp/after_generate_diff.txt', { stdio: 'inherit' });
+    const afterStatus = getGitStatus();
+    const afterDiff = getGitDiff();
     
-    // Analyze changes
-    const newFiles = execSync('diff /tmp/before_generate.txt /tmp/after_generate.txt | grep "^+.*" | grep -v "^+++" | cut -c3- | grep -v "api-models/typescript/src/generated/" | grep -v "api-models/java/target/" | grep -v "api-models/typescript/dist/" || true', { encoding: 'utf8' });
-    const modifiedFiles = execSync('git diff --name-only | grep -v "api-models/typescript/src/generated/" | grep -v "api-models/java/target/" | grep -v "api-models/typescript/dist/" || true', { encoding: 'utf8' });
+    // Analyze changes using Node.js instead of Unix commands
+    const { newFiles, modifiedFiles } = analyzeChanges(beforeStatus, afterStatus, afterDiff);
     
-    if (newFiles.trim()) {
+    if (newFiles.length > 0) {
       console.error('❌ API generation created unintended files:');
-      console.error(newFiles);
+      newFiles.forEach(file => console.error(`  ${file}`));
       process.exit(1);
     }
     
-    if (modifiedFiles.trim()) {
+    if (modifiedFiles.length > 0) {
       console.error('❌ API generation modified existing files:');
-      console.error(modifiedFiles);
+      modifiedFiles.forEach(file => console.error(`  ${file}`));
       console.error('\nGit diff:');
       execSync('git diff', { stdio: 'inherit' });
       process.exit(1);

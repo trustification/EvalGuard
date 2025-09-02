@@ -1,0 +1,6 @@
+id: truthfulqa_mc1
+name: TruthfulQA Multiple Choice
+category: question_answering
+tags:
+  - question_answering
+  - truthfulness

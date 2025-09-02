@@ -31,10 +31,11 @@ definitions:
       task:
         $ref: "task_definition.schema.yaml"
       metrics:
-        type: array
-        description: List of metrics results for this task.
-        items:
-          $ref: "#/definitions/MetricResult"
+        type: object
+        patternProperties:
+          "^[a-zA-Z0-9_-]+$":
+            $ref: "#/definitions/MetricResult"
+        description: Dictionary of metrics results for this task. Keys are metric identifiers.
     required:
       - task
       - metrics
@@ -55,11 +56,8 @@ definitions:
       stderr:
         type: number
         description: Standard error of the metric value (if available)
-      thresholds:
-        type: array
-        description: Applicable threshold ranges for this metric value
-        items:
-          $ref: "threshold.schema.yaml#/definitions/ThresholdRangeItem"
+      evaluation:
+        $ref: "#/definitions/MetricEvaluation"
     required:
       - metric
       - report_id
@@ -77,3 +75,15 @@ definitions:
         description: Type of the report
         enum:
           - lm-eval-report
+  MetricEvaluation:
+    type: object
+    description: Evaluation result for a metric based on policy thresholds
+    properties:
+      impact:
+        $ref: "policy.schema.yaml#/definitions/Impact"
+      interpretation:
+        type: string
+        description: Interpretation of the metric evaluation
+    required:
+      - impact
+    additionalProperties: false

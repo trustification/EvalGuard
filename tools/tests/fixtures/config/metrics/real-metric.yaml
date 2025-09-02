@@ -1,0 +1,8 @@
+id: acc
+name: Accuracy
+direction: higher_is_better
+description: Standard accuracy metric for classification tasks
+unit: percentage
+range:
+  min: 0.0
+  max: 1.0

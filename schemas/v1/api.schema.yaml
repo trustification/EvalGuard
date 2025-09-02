@@ -115,7 +115,8 @@ paths:
                           languages:
                             - "en"
                         metrics:
-                          - metric:
+                          acc:
+                            metric:
                               id: "acc"
                               name: "Accuracy"
                               description: "Standard accuracy metric"
@@ -128,16 +129,11 @@ paths:
                               type: "lm-eval-report"
                             value: 0.75
                             stderr: 0.015
-                            thresholds:
-                              - impact: high
-                                max: 0.5
-                              - impact: moderate
-                                min: 0.5
-                                max: 0.6
-                              - impact: low
-                                min: 0.6
-                                max: 0.7
-                          - metric:
+                            evaluation:
+                              impact: low
+                              interpretation: "Mostly truthful with few hallucinations or misleading content"
+                          acc_norm:
+                            metric:
                               id: "acc_norm"
                               name: "Normalized Accuracy"
                               description: "Accuracy normalized by human performance"
@@ -151,15 +147,9 @@ paths:
                               type: "lm-eval-report"
                             value: 0.72
                             stderr: 0.016
-                            thresholds:
-                              - impact: high
-                                max: 0.5
-                              - impact: moderate
-                                min: 0.5
-                                max: 0.6
-                              - impact: low
-                                min: 0.6
-                                max: 0.7
+                            evaluation:
+                              impact: low
+                              interpretation: "Mostly truthful with few hallucinations or misleading content."
                     guardrails:
                       - id: "truthfulness-check"
                         name: "Truthfulness Verification"

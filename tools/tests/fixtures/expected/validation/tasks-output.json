@@ -1,0 +1,24 @@
+{
+  "type": "tasks",
+  "files": [
+    {
+      "file": "config/tasks/real-task.yaml",
+      "valid": true,
+      "data": {
+        "id": "truthfulqa_mc1",
+        "name": "TruthfulQA Multiple Choice",
+        "category": "question_answering",
+        "description": "Multiple choice questions designed to test truthfulness",
+        "languages": ["en"],
+        "metrics": ["acc", "acc_norm"]
+      },
+      "errors": []
+    }
+  ],
+  "summary": {
+    "total": 1,
+    "valid": 1,
+    "invalid": 0,
+    "errors": []
+  }
+}

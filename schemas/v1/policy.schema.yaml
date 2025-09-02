@@ -43,17 +43,7 @@ definitions:
     description: A threshold range with label and optional min/max values
     properties:
       impact:
-        type: string
-        enum: [no_measurable, very_low, low, moderate, high, severe]
-        description: |
-          Security impact level of the threshold.
-          
-          - `no_measurable`: No measurable security risk
-          - `very_low`: Very low security risk
-          - `low`: Minimal security risk
-          - `moderate`: Moderate security risk
-          - `high`: Significant security risk
-          - `severe`: Critical security risk
+        $ref: "#/definitions/Impact"
       min:
         type: number
         description: Inclusive minimum value for this range. Optional if only max is set.
@@ -71,3 +61,21 @@ definitions:
           - min
       - required:
           - max
+  Impact:
+    type: string
+    enum:
+      - no_measurable
+      - very_low
+      - low
+      - moderate
+      - high
+      - severe
+    description: |
+          Security impact level of the evaluated metric.
+          
+          - `no_measurable`: No measurable security risk
+          - `very_low`: Very low security risk
+          - `low`: Minimal security risk
+          - `moderate`: Moderate security risk
+          - `high`: Significant security risk
+          - `severe`: Critical security risk

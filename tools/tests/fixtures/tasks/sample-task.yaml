@@ -1,0 +1,12 @@
+id: sample-task
+name: Sample Task
+description: A sample task for testing purposes
+category: testing
+metrics:
+  - acc
+  - acc_norm
+tags:
+  - test
+  - sample
+languages:
+  - en
