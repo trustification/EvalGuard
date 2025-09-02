@@ -1,15 +1,17 @@
-.PHONY: install build clean dev test package help
+.PHONY: install build clean dev test test-coverage test-watch package help
 
 # Default target
 help:
 	@echo "EvalGuard CLI - Build Commands:"
 	@echo ""
-	@echo "  make install    - Install dependencies"
-	@echo "  make build      - Build the TypeScript project"
-	@echo "  make clean      - Clean build artifacts"
-	@echo "  make dev        - Run in development mode"
-	@echo "  make test       - Run tests"
-	@echo "  make package    - Build standalone binary"
+	@echo "  make install       - Install dependencies"
+	@echo "  make build         - Build the TypeScript project"
+	@echo "  make clean         - Clean build artifacts"
+	@echo "  make dev           - Run in development mode"
+	@echo "  make test          - Run tests"
+	@echo "  make test-coverage - Run tests with coverage"
+	@echo "  make test-watch    - Run tests in watch mode"
+	@echo "  make package       - Build standalone binary"
 	@echo ""
 	@echo "CLI Usage Examples:"
 	@echo "  evalguard config validate           # Validate all config files"
@@ -53,7 +55,17 @@ dev: install
 # Run tests
 test: build
 	@echo "🧪 Running tests..."
-	node test-cli.js
+	npm test
+
+# Run tests with coverage
+test-coverage: build
+	@echo "🧪 Running tests with coverage..."
+	npm run test:coverage
+
+# Run tests in watch mode
+test-watch: build
+	@echo "🧪 Running tests in watch mode..."
+	npm run test:watch
 
 # Quick setup for development
 setup: install build
@@ -65,6 +77,11 @@ setup: install build
 	@echo "  evalguard lm-eval gen --file <path> # Generate from report"
 	@echo "  evalguard api gen --type js         # Generate API models"
 	@echo "  evalguard api --help                # API commands"
-	@echo "  evalguard dev                       # Run in development mode" 
+	@echo "  evalguard dev                       # Run in development mode"
+	@echo ""
+	@echo "Testing:"
+	@echo "  make test                           # Run all tests"
+	@echo "  make test-coverage                  # Run tests with coverage"
+	@echo "  make test-watch                     # Run tests in watch mode" 
 
  

@@ -1,0 +1,42 @@
+{
+  "results": {
+    "truthfulqa_mc1": {
+      "acc": 0.75,
+      "acc_norm": 0.72
+    },
+    "crows_pairs_english_gender": {
+      "likelihood_diff": 0.15,
+      "pct_stereotype": 0.68
+    }
+  },
+  "configs": {
+    "truthfulqa_mc1": {
+      "task": "TruthfulQA Multiple Choice",
+      "tag": ["question_answering", "truthfulness"],
+      "metric_list": [
+        {
+          "metric": "acc",
+          "higher_is_better": true
+        },
+        {
+          "metric": "acc_norm",
+          "higher_is_better": true
+        }
+      ]
+    },
+    "crows_pairs_english_gender": {
+      "task": "CrowS-Pairs English Gender",
+      "tag": ["bias", "gender", "stereotypes"],
+      "metric_list": [
+        {
+          "metric": "likelihood_diff",
+          "higher_is_better": false
+        },
+        {
+          "metric": "pct_stereotype",
+          "higher_is_better": false
+        }
+      ]
+    }
+  }
+}

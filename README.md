@@ -11,38 +11,18 @@ EvalGuard is **tool-agnostic** but compatible with evaluation outputs from syste
 
 ---
 
-## Purpose
+## What EvalGuard Provides
 
-EvalGuard provides:
-
+- **REST API specification** for accessing evaluation data
 - **Schemas** for evaluation reports, tasks, metrics, policies, and guardrails
-- **Configuration files** for:
-  - Model description and information
-  - Task descriptions and categories
-  - Metric types and interpretations
-  - Policies with embedded performance thresholds
-  - Guardrails for operational constraints and policies
-  - Tags for capabilities, risk types, and domains
-- **Annotated evaluation reports** (e.g., in JSON/YAML format)
+- **Configuration files** for model descriptions, task definitions, metric types, and operational guardrails
+- **CLI tools** for schema validation, data generation, and API model generation
 
 This enables:
 - Consistent comparison across evaluations
 - Configurable guidance on model strengths and limitations
 - Operational guardrails and policy frameworks
 - Risk mitigation and quality enforcement
-
----
-
-## Specification
-
-The EvalGuard schema system is formally defined in the [**EvalGuard Schema Specification**](SPECIFICATION.md). This specification provides:
-
-- **Schema Definitions**: Formal definitions for tasks, metrics, thresholds, and reports
-- **Validation Rules**: Comprehensive validation requirements and constraints
-- **File Organization**: Schema versioning and file structure guidelines
-- **Implementation Requirements**: Conformance requirements for implementations
-
-The specification follows industry standards and uses RFC 2119 terminology for clarity and precision.
 
 ---
 
@@ -55,158 +35,107 @@ evalguard/
 ├── config/            # Configuration files for interpretation
 │   ├── tasks/         # Task definitions and metadata
 │   ├── metrics/       # Metric definitions and types
-│   ├── policies/      # Policy definitions
+│   ├── policies/      # Policy definitions with embedded thresholds
 │   └── guardrails/    # Operational guardrails and policies
 ├── reports/           # Community-contributed model evaluation reports
-│   └── lm-eval/       # lm-evaluation-harness reports
 ├── tools/             # CLI tool for schema management
-├── SPECIFICATION.md   # Formal schema specification
-├── LICENSE
-├── NOTICE
+├── api-models/        # Generated language-specific models
+├── SPECIFICATION.md   # Complete schema specification
 └── README.md
 ```
 
-## Tools and CLI
+---
 
-EvalGuard provides a CLI tool for schema validation, data generation, and API model generation. The tool helps with:
+## Key Concepts
 
-- **Schema Validation**: Validate configuration files against EvalGuard schemas
-- **Data Generation**: Generate tasks and metrics from evaluation reports
-- **API Model Generation**: Generate Java and TypeScript models from OpenAPI schemas
-- **Cross-Reference Validation**: Ensure consistency between tasks, metrics, and thresholds
+### Policies
+Policies define evaluation contexts and performance thresholds. They group related thresholds and evaluation criteria, with thresholds embedded within policy definitions.
 
-The tool implements the requirements defined in the [EvalGuard Schema Specification](SPECIFICATION.md):
+### Guardrails
+Guardrails define operational constraints and policies for model deployment, helping mitigate risks and enforce quality standards.
 
-## Policies
+### Model Cards
+Comprehensive documentation of a model's capabilities and evaluation results, with evaluation results contextualized by policy.
 
-EvalGuard includes a policy system that defines evaluation contexts and performance thresholds. Policies provide a structured way to organize thresholds and interpret model performance within specific evaluation contexts.
+---
 
-### Policy Features
+## Specification
 
-- **Contextual Organization**: Policies group related thresholds and evaluation criteria
-- **Embedded Thresholds**: Performance thresholds are embedded within policy definitions
-- **Flexible Application**: Policies can be applied to specific tasks, metrics, or evaluation scenarios
-- **Standardized Interpretation**: Consistent threshold definitions across different evaluation contexts
+The EvalGuard schema system is formally defined in the [**EvalGuard Schema Specification**](SPECIFICATION.md). This specification provides:
 
-### Example Policy Structure
+- **Schema Definitions**: Formal definitions for tasks, metrics, thresholds, and reports
+- **Validation Rules**: Comprehensive validation requirements and constraints
+- **File Organization**: Schema versioning and file structure guidelines
+- **Implementation Requirements**: Conformance requirements for implementations
+- **API Specification**: Complete REST API interface definition
+- **Examples**: Detailed configuration examples and usage patterns
 
-```yaml
-# config/policies/default/policy.yaml
-id: default
-name: Default Policy
-description: Default policy for all contexts that don't define a specific policy.
+The specification follows industry standards and uses RFC 2119 terminology for clarity and precision.
 
-# config/policies/default/thresholds/truthfulqa_mc1.yaml
-task: truthfulqa_mc1
-thresholds:
-  acc:
-    - impact: very_low
-      min: 0.85
-      interpretation: High factual accuracy
-    - impact: moderate
-      min: 0.5
-      max: 0.85
-      interpretation: Moderate accuracy
-    - impact: severe
-      max: 0.5
-      interpretation: Low accuracy
+---
+
+## API Usage
+
+EvalGuard defines a REST API specification for accessing evaluation data. The API supports filtering by model, task, metric, and policy context.
+
+```bash
+# Get reports for a specific model
+curl "https://api.evalguard.org/v1/reports?model_name=meta-llama/Llama-3.1-8B-Instruct"
+
+# Get model card with specific policy evaluation results
+curl "https://api.evalguard.org/v1/models/llama-3.1-8b-instruct/card?policy_id=default"
+
+# Get policies with embedded thresholds
+curl "https://api.evalguard.org/v1/policies?tasks=truthfulqa_mc1,winogender_schemas"
 ```
-
-### Policy Contextualization
-
-In EvalGuard, both thresholds and guardrails are organized under policies. This means:
-
-- **Policy-Based Organization**: Thresholds and guardrails are embedded within evaluation policies (e.g., "default", "enterprise", "research")
-- **Embedded Thresholds**: Thresholds are now part of the policy structure, not separate endpoints
-- **Model Card Contextualization**: When you request a model card, you specify a `policy_id` to get thresholds and guardrails appropriate for that specific evaluation context
-- **Flexible Interpretation**: Different policies can provide different threshold interpretations and guardrail requirements for the same metrics
-- **No Access Control**: Policies do not control API access or permissions - they only affect the content returned in model cards
-
-**Example**: Requesting a model card with `?policy_id=enterprise` will return enterprise-specific thresholds and guardrails, while `?policy_id=research` might return more permissive research-oriented ones.
-
-## Guardrails
-
-EvalGuard includes a guardrails system for defining operational constraints and policies that should be applied during model evaluation or deployment. Guardrails help mitigate risks, enforce quality standards, and guide model behavior.
-
-### Guardrail Features
-
-- **Targeted Application**: Guardrails can target specific tasks, metrics, and models
-- **Flexible Scope**: Apply to input processing, output generation, or both
-- **Metadata Support**: Include external references and implementation guidance
-- **Cross-Reference Validation**: Ensure guardrails reference valid tasks and metrics
-
-### Example Guardrail Configuration
-
-```yaml
-id: truthfulness-check
-name: Truthfulness Verification
-description: Ensures model responses are truthful and avoid hallucination
-targets:
-  - task: truthfulqa_mc1
-    metrics: [acc, acc_norm]
-scope: output
-instructions: Verify that model responses are factually accurate
-external_references:
-  - https://arxiv.org/abs/2209.07958
-```
-
-## API Specification
-
-EvalGuard defines a REST API specification for accessing evaluation reports. The API is defined in the [OpenAPI Specification](schemas/v1/api.schema.yaml) and supports:
-
-- **Report Retrieval**: Get specific reports by ID or query by model name, source, task, or metric
-- **Model Discovery**: List available models and their evaluation history
-- **Task Information**: Access task definitions and metadata
-- **Metrics Access**: Retrieve performance metrics for specific reports
-- **Policy Access**: Get policies with embedded thresholds for interpreting metric results
-- **Policy Contextualization**: Thresholds are contextualized based on `policy_id` query parameters
-- **Guardrails Access**: Retrieve operational guardrails and policies
 
 > **Note**: This is a **specification only**. The API is not implemented in this repository. Anyone interested in providing EvalGuard API services can implement this specification.
 
-### Example API Usage
+---
 
-```bash
-# Get all reports for a specific model
-curl "https://api.evalguard.org/v1/reports?model_name=meta-llama/Llama-3.1-8B-Instruct"
+## Contributing
 
-# Get a specific report
-curl "https://api.evalguard.org/v1/reports/llama-3.1-8b-instruct-eval-2025-01-15"
+EvalGuard thrives on community contributions! We welcome contributions of evaluation reports, configuration files, and improvements to the schemas and tools.
 
-# Get only metrics for a report
-curl "https://api.evalguard.org/v1/reports/llama-3.1-8b-instruct-eval-2025-01-15/metrics"
+### Contributing Evaluation Reports
 
-# Get policies with embedded thresholds for multiple tasks and metrics
-curl "https://api.evalguard.org/v1/policies?tasks=truthfulqa_mc1,winogender_schemas&metrics=acc,acc_norm,pct_stereotype"
-
-# Get model card with specific policy thresholds
-curl "https://api.evalguard.org/v1/models/llama-3.1-8b-instruct/card?policy_id=default"
-
-# Get specific policy with embedded thresholds
-curl "https://api.evalguard.org/v1/policies/default"
-
-# List available models
-curl "https://api.evalguard.org/v1/models"
-
-# List guardrails with filtering
-curl "https://api.evalguard.org/v1/guardrails?tasks=truthfulqa_mc1&metrics=acc"
-
-# Get specific guardrail
-curl "https://api.evalguard.org/v1/guardrails/truthfulness-check"
+#### Report Format
+Reports must follow the directory structure:
+```
+reports/<model_org>/<model_name>/lm-eval/report.json
 ```
 
-### Installation
+**Example**: `reports/meta-llama/Llama-3.1-8B-Instruct/lm-eval/report.json`
+
+#### Supported Formats
+- **lm-evaluation-harness**: Currently supported with full CLI integration
+- **Other formats**: If you have evaluation reports in other formats, please create an issue to discuss integration
+
+#### Adding Missing Data
+When adding a new report, you can use the CLI to automatically generate missing tasks, models, and metrics:
 
 ```bash
-# Install dependencies
-cd tools
-npm install
+# Generate missing configuration from a single report
+evalguard lm-eval gen -f report.json
 
-# Build the tool
-make build
+# Generate missing configuration from multiple reports in a directory
+evalguard lm-eval gen -d reports/
 ```
 
-### Usage
+This will create the necessary configuration files in the appropriate `config/` subdirectories.
+
+### Contributing Configuration Files
+
+#### Adding New Configurations
+You can add new configuration files directly to the appropriate folders:
+
+- **Tasks**: `config/tasks/` - Task definitions and metadata
+- **Metrics**: `config/metrics/` - Metric definitions and types  
+- **Policies**: `config/policies/` - Policy definitions with embedded thresholds
+- **Guardrails**: `config/guardrails/` - Operational guardrails and policies
+
+#### Validation
+Always validate your contributions using the CLI:
 
 ```bash
 # Validate all configuration files
@@ -216,30 +145,74 @@ evalguard config validate
 evalguard config validate -t tasks
 evalguard config validate -t metrics
 evalguard config validate -t policies
-evalguard config validate -t thresholds
+evalguard config validate -t guardrails
+```
+
+#### Schema Compliance
+All configuration files must follow the schemas defined in `schemas/v1/`. See [SPECIFICATION.md](SPECIFICATION.md) for detailed schema definitions and examples.
+
+### Contribution Guidelines
+
+1. **Evaluation Reports**: Submit reports following the directory structure `reports/<model_org>/<model_name>/lm-eval/report.json`. Currently, only [lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness) reports are supported. For other evaluation formats, please create an issue to discuss integration.
+
+2. **Configuration Generation**: When contributing new reports, utilize the CLI tool to automatically generate missing tasks, models, and metrics: `evalguard lm-eval gen`
+
+3. **Configuration Validation**: Ensure all configuration files adhere to the API specification and validate them using: `evalguard config validate`
+
+---
+
+## Quick Start
+
+### Installation
+
+```bash
+# Install dependencies and build standalone binary
+cd tools
+# Build binaries for multiple platforms
+make package
+# Available platforms: macOS, Linux, Windows
+# Output: bin/evalguard-{platform}
+
+# Move the binary to a convenient location and add to PATH
+# For macOS:
+cp bin/evalguard-macos ~/.local/bin/evalguard
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+
+# For Linux:
+cp bin/evalguard-linux ~/.local/bin/evalguard
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+
+# For Windows (PowerShell):
+# Copy evalguard-win.exe to a directory in your PATH
+# Or add the bin directory to your system PATH
+```
+
+### Basic Usage
+
+```bash
+# Validate all configuration files
+evalguard config validate
+
+# Validate specific types
+evalguard config validate -t tasks
+evalguard config validate -t metrics
+evalguard config validate -t policies
 evalguard config validate -t guardrails
 
-# Validate from a different root directory
-evalguard config validate --root /path/to/evalguard
-
-# Generate tasks/metrics from evaluation reports
+# Generate tasks/metrics/model_info from evaluation reports
 evalguard lm-eval gen -f report.json
 evalguard lm-eval gen -d reports/
 
-# Generate TypeScript models from schemas
+# Generate API models from schemas
 evalguard api gen --type js --spec-version v1
 ```
 
-### Building Standalone Binaries
+---
 
-```bash
-# Build binaries for multiple platforms
-make binary
+## Documentation
 
-# Available platforms: macOS, Linux, Windows
-# Output: bin/evalguard-{platform}
-```
-
-### Development
-
-For development instructions, see the [tools README](tools/README.md).
+- **[SPECIFICATION.md](SPECIFICATION.md)**: Complete schema specification with detailed examples
+- **[tools/README.md](tools/README.md)**: CLI tool development and usage details
+- **[api-models/](api-models/)**: Generated language-specific models and usage examples

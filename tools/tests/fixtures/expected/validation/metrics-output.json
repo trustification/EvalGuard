@@ -1,0 +1,27 @@
+{
+  "type": "metrics",
+  "files": [
+    {
+      "file": "config/metrics/real-metric.yaml",
+      "valid": true,
+      "data": {
+        "id": "acc",
+        "name": "Accuracy",
+        "direction": "higher_is_better",
+        "description": "Standard accuracy metric for classification tasks",
+        "unit": "percentage",
+        "range": {
+          "min": 0.0,
+          "max": 1.0
+        }
+      },
+      "errors": []
+    }
+  ],
+  "summary": {
+    "total": 1,
+    "valid": 1,
+    "invalid": 0,
+    "errors": []
+  }
+}

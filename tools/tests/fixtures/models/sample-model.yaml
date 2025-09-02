@@ -1,0 +1,11 @@
+id: sample-model
+name: Sample Model
+namespace: test-org
+aliases:
+  - sample
+  - test-model
+reference_links:
+  - name: Documentation
+    url: https://example.com/sample-model
+  - name: Paper
+    url: https://arxiv.org/abs/1234.5678

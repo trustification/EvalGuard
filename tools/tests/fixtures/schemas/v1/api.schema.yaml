@@ -1,0 +1,66 @@
+openapi: 3.0.3
+info:
+  title: Test API Schema
+  description: Basic API schema for testing API generation
+  version: 1.0.0
+  contact:
+    name: Test Team
+    url: https://example.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+servers:
+  - url: https://api.test.com/v1
+    description: Test server
+  - url: http://localhost:3000/v1
+    description: Local development server
+paths:
+  /test:
+    get:
+      summary: Test endpoint
+      description: A simple test endpoint
+      operationId: testEndpoint
+      tags:
+        - Test
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Hello World"
+                  timestamp:
+                    type: string
+                    format: date-time
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid request"
+components:
+  schemas:
+    TestResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Response message
+        timestamp:
+          type: string
+          format: date-time
+          description: Response timestamp
+      required:
+        - message
+        - timestamp
+tags:
+  - name: Test
+    description: Test operations

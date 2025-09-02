@@ -444,7 +444,7 @@ The Model Card Schema defines a comprehensive model card that includes model ide
 | Property | Type | Required | Description |
 |----------|------|----------|-------------|
 | `task` | object | ✅ | Task definition (references Task Definition Schema) |
-| `metrics` | array | ✅ | List of metrics results for this task |
+| `metrics` | object | ✅ | Dictionary of metrics results for this task. Keys are metric identifiers. |
 
 #### 4.7.4 Metric Result Properties
 
@@ -454,7 +454,7 @@ The Model Card Schema defines a comprehensive model card that includes model ide
 | `report_ref` | object | ❌ | Reference to the report containing full context |
 | `value` | number | ✅ | The calculated metric value |
 | `stderr` | number | ❌ | Standard error of the metric value |
-| `thresholds` | array | ❌ | Applicable threshold ranges for this metric value (contextualized by policy_id) |
+| `evaluation` | object | ❌ | Evaluation result for this metric based on policy thresholds |
 
 #### 4.7.5 Example
 
@@ -471,28 +471,33 @@ tasks:
       category: question_answering
       metrics: [acc, acc_norm]
     metrics:
-      - metric:
+      acc:
+        metric:
           id: acc
           name: Accuracy
           direction: higher_is_better
         value: 0.75
         stderr: 0.015
-        thresholds:
-          - impact: high
-            max: 0.5
-          - impact: moderate
-            min: 0.5
-            max: 0.6
-          - impact: low
-            min: 0.6
-            max: 0.7
+        evaluation:
+          impact: moderate
+          interpretation: Moderate accuracy
+      acc_norm:
+        metric:
+          id: acc_norm
+          name: Normalized Accuracy
+          direction: higher_is_better
+        value: 0.72
+        stderr: 0.016
+        evaluation:
+          impact: moderate
+          interpretation: Moderate normalized accuracy
 guardrails:
   - id: truthfulness-check
     name: Truthfulness Verification
     scope: output
 ```
 
-**Note**: The thresholds in the model card are contextualized based on the `policy_id` query parameter. When retrieving model cards, clients can specify a policy to get thresholds appropriate for that evaluation context.
+**Note**: The evaluation results in the model card are calculated for the specific policy provided in the `policy_id` query parameter. When retrieving model cards, clients can specify a policy to get evaluation results appropriate for that evaluation context.
 
 ### 4.8 API Schema
 
@@ -535,17 +540,17 @@ The `/guardrails` endpoint supports:
 
 The `policy_id` parameter is used specifically for model card retrieval to contextualize thresholds and guardrails:
 
-- **Model Cards**: When retrieving model cards with `?policy_id=default`, thresholds and guardrails are contextualized based on the specified policy
-- **Policy-Specific Thresholds**: Different policies provide different threshold interpretations for the same metrics
-- **Embedded Thresholds**: Thresholds are embedded within policies
+- **Model Cards**: When retrieving model cards with `?policy_id=default`, evaluation results and guardrails are contextualized based on the specified policy
+- **Policy-Specific Evaluations**: Different policies provide different evaluation interpretations for the same metrics
+- **Embedded Thresholds**: Thresholds are embedded within policies and used to generate evaluation results
 - **No Access Control**: Policies do not control API access or permissions - they only affect the content returned in model cards
 
 **Example Usage**:
 ```bash
-# Get model card with default policy thresholds
+# Get model card with default policy evaluation results
 curl "https://api.evalguard.org/v1/models/llama-3.1-8b-instruct/card?policy_id=default"
 
-# Get model card with enterprise policy thresholds
+# Get model card with enterprise policy evaluation results
 curl "https://api.evalguard.org/v1/models/llama-3.1-8b-instruct/card?policy_id=enterprise"
 
 # Get specific policy

@@ -1,0 +1,16 @@
+id: sample-policy
+name: Sample Policy
+description: A sample policy for testing purposes
+thresholds:
+  sample-task:
+    acc:
+      - impact: very_low
+        min: 0.85
+        interpretation: High accuracy
+      - impact: moderate
+        min: 0.5
+        max: 0.85
+        interpretation: Moderate accuracy
+      - impact: severe
+        max: 0.5
+        interpretation: Low accuracy

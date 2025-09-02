@@ -1,0 +1,56 @@
+$schema: http://json-schema.org/draft-07/schema#
+title: API Types Schema
+description: Basic API types for testing API generation
+type: object
+properties:
+  TestResponse:
+    type: object
+    description: Test response type
+    properties:
+      message:
+        type: string
+        description: Response message
+      timestamp:
+        type: string
+        format: date-time
+        description: Response timestamp
+    required:
+      - message
+      - timestamp
+  Error:
+    type: object
+    description: Error response type
+    properties:
+      error:
+        type: string
+        description: Error message
+      code:
+        type: integer
+        description: Error code
+      details:
+        type: object
+        description: Additional error details
+    required:
+      - error
+      - code
+  Pagination:
+    type: object
+    description: Pagination information
+    properties:
+      total:
+        type: integer
+        description: Total number of items
+      limit:
+        type: integer
+        description: Items per page
+      offset:
+        type: integer
+        description: Items to skip
+      has_more:
+        type: boolean
+        description: Whether there are more items
+    required:
+      - total
+      - limit
+      - offset
+      - has_more

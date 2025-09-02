@@ -1,0 +1,22 @@
+{
+  "results": {
+    "acc": 0.75,
+    "acc_norm": 0.72
+  },
+  "configs": {
+    "sample-task": {
+      "task": "Sample Task",
+      "tag": ["test", "sample"],
+      "metric_list": [
+        {
+          "metric": "acc",
+          "higher_is_better": true
+        },
+        {
+          "metric": "acc_norm",
+          "higher_is_better": true
+        }
+      ]
+    }
+  }
+}

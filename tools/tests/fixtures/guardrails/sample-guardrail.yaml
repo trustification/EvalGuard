@@ -1,0 +1,10 @@
+id: sample-guardrail
+name: Sample Guardrail
+description: A sample guardrail for testing purposes
+targets:
+  - task: sample-task
+    metrics: [acc, acc_norm]
+scope: output
+instructions: Verify that model responses are accurate
+external_references:
+  - https://example.com/sample-reference
