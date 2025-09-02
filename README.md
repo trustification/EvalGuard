@@ -102,17 +102,18 @@ EvalGuard thrives on community contributions! We welcome contributions of evalua
 #### Report Format
 Reports must follow the directory structure:
 ```
-reports/<model_org>/<model_name>/lm-eval/report.json
+reports/<model_org>/<model_name>/<report_format>/report.json
 ```
 
 **Example**: `reports/meta-llama/Llama-3.1-8B-Instruct/lm-eval/report.json`
 
 #### Supported Formats
-- **lm-evaluation-harness**: Currently supported with full CLI integration
+- **lm-evaluation-harness** (`lm-eval`): Currently supported with full CLI integration
 - **Other formats**: If you have evaluation reports in other formats, please create an issue to discuss integration
 
 #### Adding Missing Data
-When adding a new report, you can use the CLI to automatically generate missing tasks, models, and metrics:
+When adding a new report, you can use the CLI to automatically generate missing tasks, models, and metrics but bear
+in mind that some fields will not be filled like friendly name or description so take some time to review what is missing:
 
 ```bash
 # Generate missing configuration from a single report
@@ -123,6 +124,17 @@ evalguard lm-eval gen -d reports/
 ```
 
 This will create the necessary configuration files in the appropriate `config/` subdirectories.
+
+#### Ready to Contribute?
+**🚀 Create a Pull Request** using our [Report Contribution Template](.github/report_template.md) to submit your evaluation reports!
+
+The template will guide you through:
+- Proper report structure and format
+- Configuration generation and validation
+- Quality assurance steps
+- Required checklist items
+
+Simply copy the template content when creating your PR to ensure all requirements are met.
 
 ### Contributing Configuration Files
 
@@ -151,13 +163,16 @@ evalguard config validate -t guardrails
 #### Schema Compliance
 All configuration files must follow the schemas defined in `schemas/v1/`. See [SPECIFICATION.md](SPECIFICATION.md) for detailed schema definitions and examples.
 
-### Contribution Guidelines
+#### Ready to Contribute Configurations?
+**⚙️ Create a Pull Request** using our [Configuration Update Template](.github/config_template.md) to submit your configuration changes!
 
-1. **Evaluation Reports**: Submit reports following the directory structure `reports/<model_org>/<model_name>/lm-eval/report.json`. Currently, only [lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness) reports are supported. For other evaluation formats, please create an issue to discuss integration.
+The template will guide you through:
+- Proper configuration file structure
+- Validation and schema compliance
+- Quality assurance for configuration updates
+- Required checklist items
 
-2. **Configuration Generation**: When contributing new reports, utilize the CLI tool to automatically generate missing tasks, models, and metrics: `evalguard lm-eval gen`
-
-3. **Configuration Validation**: Ensure all configuration files adhere to the API specification and validate them using: `evalguard config validate`
+Simply copy the template content when creating your PR to ensure all requirements are met.
 
 ---
 
